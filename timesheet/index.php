@@ -30,6 +30,18 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
     }
 }
 
+// Handle copy entry request (get values from URL parameters)
+$copied_values = null;
+if (isset($_GET['date']) && !isset($_GET['edit'])) {
+    $copied_values = [
+        'date' => $_GET['date'] ?? '',
+        'client_id' => $_GET['client_id'] ?? '',
+        'task_id' => $_GET['task_id'] ?? '',
+        'time_spent' => $_GET['time_spent'] ?? '',
+        'description' => $_GET['description'] ?? ''
+    ];
+}
+
 // Calculate week dates
 $week_start = date('Y-m-d', strtotime($year . 'W' . str_pad($week, 2, '0', STR_PAD_LEFT)));
 $week_end = date('Y-m-d', strtotime($week_start . ' +5 days'));
@@ -210,7 +222,15 @@ for ($i = -12; $i <= 12; $i++) {
                         <!-- Add/Edit Entry Form -->
                         <div class="form-section">
                             <h3 class="section-title">
-                                <?php echo $editing_entry ? 'Edit Timesheet Entry' : 'Add Timesheet Entry'; ?>
+                                <?php 
+                                if ($editing_entry) {
+                                    echo 'Edit Timesheet Entry';
+                                } elseif ($copied_values) {
+                                    echo 'Add Timesheet Entry (Copied)';
+                                } else {
+                                    echo 'Add Timesheet Entry';
+                                }
+                                ?>
                             </h3>
                             <form method="POST" action="">
                                 <?php if ($editing_entry): ?>
@@ -224,7 +244,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             Date *
                                         </label>
                                         <input type="date" id="date" name="date" class="form-input" 
-                                               value="<?php echo $editing_entry ? $editing_entry['date'] : ($date ?? date('Y-m-d')); ?>" required>
+                                               value="<?php echo $editing_entry ? $editing_entry['date'] : ($copied_values ? $copied_values['date'] : ($date ?? date('Y-m-d'))); ?>" required>
                                     </div>
 
                                     <div class="form-group">
@@ -236,7 +256,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             <option value="">Select a client</option>
                                             <?php foreach ($clients as $client): ?>
                                                 <option value="<?php echo $client['id']; ?>" 
-                                                        <?php echo ($editing_entry ? $editing_entry['client_id'] : ($client_id ?? '')) == $client['id'] ? 'selected' : ''; ?>>
+                                                        <?php echo ($editing_entry ? $editing_entry['client_id'] : ($copied_values ? $copied_values['client_id'] : ($client_id ?? ''))) == $client['id'] ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($client['name']); ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -252,7 +272,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             <option value="">Select a task</option>
                                             <?php foreach ($tasks as $task): ?>
                                                 <option value="<?php echo $task['id']; ?>" 
-                                                        <?php echo ($editing_entry ? $editing_entry['task_id'] : ($task_id ?? '')) == $task['id'] ? 'selected' : ''; ?>>
+                                                        <?php echo ($editing_entry ? $editing_entry['task_id'] : ($copied_values ? $copied_values['task_id'] : ($task_id ?? ''))) == $task['id'] ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($task['task_name']); ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -265,7 +285,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             Time Spent *
                                         </label>
                                         <input type="time" id="time_spent" name="time_spent" class="form-input" 
-                                               value="<?php echo $editing_entry ? $editing_entry['time_spent'] : ($time_spent ?? ''); ?>" required>
+                                               value="<?php echo $editing_entry ? $editing_entry['time_spent'] : ($copied_values ? $copied_values['time_spent'] : ($time_spent ?? '')); ?>" required>
                                     </div>
 
                                     <div class="form-group" style="grid-column: 1 / -1;">
@@ -274,7 +294,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             Description (max 100 characters)
                                         </label>
                                         <textarea id="description" name="description" class="form-textarea" rows="3" 
-                                                  maxlength="100" placeholder="Brief description of work done"><?php echo htmlspecialchars($editing_entry ? $editing_entry['description'] : ($description ?? '')); ?></textarea>
+                                                  maxlength="100" placeholder="Brief description of work done"><?php echo htmlspecialchars($editing_entry ? $editing_entry['description'] : ($copied_values ? $copied_values['description'] : ($description ?? ''))); ?></textarea>
                                         <small class="char-count">0/100 characters</small>
                                     </div>
                                 </div>
@@ -285,6 +305,10 @@ for ($i = -12; $i <= 12; $i++) {
                                         <?php echo $editing_entry ? 'Update Entry' : 'Add Entry'; ?>
                                     </button>
                                     <?php if ($editing_entry): ?>
+                                        <button type="button" class="btn btn-success" onclick="copyEntry()">
+                                            <i class="fas fa-copy"></i>
+                                            Copy Entry
+                                        </button>
                                         <a href="?" class="btn btn-secondary">
                                             <i class="fas fa-times"></i>
                                             Cancel Edit
@@ -351,6 +375,27 @@ for ($i = -12; $i <= 12; $i++) {
         // Edit entry function
         function editEntry(entryId) {
             window.location.href = '?edit=' + entryId;
+        }
+        
+        // Copy entry function
+        function copyEntry() {
+            // Get current form values
+            const date = document.getElementById('date').value;
+            const clientId = document.getElementById('client_id').value;
+            const taskId = document.getElementById('task_id').value;
+            const timeSpent = document.getElementById('time_spent').value;
+            const description = document.getElementById('description').value;
+            
+            // Redirect to add mode with copied values
+            const params = new URLSearchParams({
+                date: date,
+                client_id: clientId,
+                task_id: taskId,
+                time_spent: timeSpent,
+                description: description
+            });
+            
+            window.location.href = '?' + params.toString();
         }
         
         // Scroll to form when editing
