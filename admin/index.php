@@ -2,9 +2,15 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in
+// Check if user is logged in and is administrator
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login');
+    exit;
+}
+
+$account_type = $_SESSION['account_type'] ?? 'Basic';
+if ($account_type !== 'Administrator') {
+    header('Location: ../practice');
     exit;
 }
 
@@ -43,13 +49,10 @@ try {
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="../home" class="nav-link">Home</a>
+                    <a href="../practice" class="nav-link">Practice Portal</a>
                 </li>
                 <li class="nav-item">
-                    <a href="../contact" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a href="?logout=1" class="nav-link">
+                    <a href="../login?logout=1" class="nav-link">
                         <i class="fas fa-sign-out-alt"></i>
                         Logout
                     </a>

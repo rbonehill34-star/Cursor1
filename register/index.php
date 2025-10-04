@@ -8,9 +8,10 @@ if ($_POST) {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
+    $account_type = $_POST['account_type'] ?? '';
     
     // Validation
-    if (empty($username) || empty($password) || empty($confirm_password)) {
+    if (empty($username) || empty($password) || empty($confirm_password) || empty($account_type)) {
         $message = 'Please fill in all fields.';
         $messageType = 'error';
     } elseif (strlen($username) < 3) {
@@ -21,6 +22,9 @@ if ($_POST) {
         $messageType = 'error';
     } elseif ($password !== $confirm_password) {
         $message = 'Passwords do not match.';
+        $messageType = 'error';
+    } elseif (!in_array($account_type, ['Administrator', 'Manager', 'Basic'])) {
+        $message = 'Please select a valid account type.';
         $messageType = 'error';
     } else {
         try {
@@ -34,14 +38,14 @@ if ($_POST) {
             } else {
                 // Create new user
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO login (username, password, created_at) VALUES (?, ?, NOW())");
-                $stmt->execute([$username, $hashed_password]);
+                $stmt = $pdo->prepare("INSERT INTO login (username, password, account_type, created_at) VALUES (?, ?, ?, NOW())");
+                $stmt->execute([$username, $hashed_password, $account_type]);
                 
                 $message = 'Account created successfully! You can now login.';
                 $messageType = 'success';
                 
                 // Clear form data
-                $username = $password = $confirm_password = '';
+                $username = $password = $confirm_password = $account_type = '';
             }
         } catch (PDOException $e) {
             $message = 'Registration failed. Please try again.';
@@ -127,6 +131,19 @@ if ($_POST) {
                             </label>
                             <input type="password" id="confirm_password" name="confirm_password" class="form-input" 
                                    placeholder="Confirm your password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="account_type" class="form-label">
+                                <i class="fas fa-user-tag"></i>
+                                Account Type
+                            </label>
+                            <select id="account_type" name="account_type" class="form-input" required>
+                                <option value="">Select account type</option>
+                                <option value="Basic" <?php echo ($account_type ?? '') === 'Basic' ? 'selected' : ''; ?>>Basic - Limited access to assigned items only</option>
+                                <option value="Manager" <?php echo ($account_type ?? '') === 'Manager' ? 'selected' : ''; ?>>Manager - Access to clients and timesheets</option>
+                                <option value="Administrator" <?php echo ($account_type ?? '') === 'Administrator' ? 'selected' : ''; ?>>Administrator - Full access to all features</option>
+                            </select>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-register">

@@ -12,14 +12,15 @@ if ($_POST) {
         $error = 'Please enter both username and password.';
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password FROM login WHERE username = ?");
+            $stmt = $pdo->prepare("SELECT id, username, password, account_type FROM login WHERE username = ?");
             $stmt->execute([$username]);
             $user = $stmt->fetch();
             
             if ($user && password_verify($password, $user['password'])) {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
-                header('Location: ../admin');
+                $_SESSION['account_type'] = $user['account_type'];
+                header('Location: ../practice');
                 exit;
             } else {
                 $error = 'Invalid username or password.';

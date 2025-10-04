@@ -1,33 +1,10 @@
--- Database setup script for cPanel hosting
--- Run this in cPanel phpMyAdmin to create the database and tables
+-- Database Update Script for Cursor1
+-- Run this in phpMyAdmin to add new tables and features
 
--- Create database (if it doesn't exist)
--- Note: In cPanel, you may need to create the database through the cPanel interface first
--- Database name: a1e750tdxgba_cursor1
-
--- Use the database
 USE a1e750tdxgba_cursor1;
 
--- Create the formresponse table
-CREATE TABLE IF NOT EXISTS formresponse (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    telephone VARCHAR(50),
-    message TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Create the login table
-CREATE TABLE IF NOT EXISTS login (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    account_type ENUM('Administrator', 'Manager', 'Basic') NOT NULL DEFAULT 'Basic',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+-- Add account_type column to existing login table
+ALTER TABLE login ADD COLUMN account_type ENUM('Administrator', 'Manager', 'Basic') NOT NULL DEFAULT 'Basic' AFTER password;
 
 -- Create the clients table
 CREATE TABLE IF NOT EXISTS clients (
@@ -69,33 +46,35 @@ CREATE TABLE IF NOT EXISTS timesheet (
 );
 
 -- Add indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_email ON formresponse(email);
-CREATE INDEX IF NOT EXISTS idx_created_at ON formresponse(created_at);
 CREATE INDEX IF NOT EXISTS idx_username ON login(username);
+CREATE INDEX IF NOT EXISTS idx_account_type ON login(account_type);
+CREATE INDEX IF NOT EXISTS idx_client_reference ON clients(reference);
+CREATE INDEX IF NOT EXISTS idx_timesheet_user_date ON timesheet(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_timesheet_client ON timesheet(client_id);
+CREATE INDEX IF NOT EXISTS idx_timesheet_task ON timesheet(task_id);
 
--- Insert sample form data (optional)
-INSERT INTO formresponse (name, email, telephone, message) VALUES
-('John Doe', 'john@example.com', '+1-555-0123', 'This is a sample message from John.'),
-('Jane Smith', 'jane@example.com', '+1-555-0456', 'Another sample message from Jane.'),
-('Bob Johnson', 'bob@example.com', '+1-555-0789', 'Sample message from Bob for testing purposes.');
+-- Update existing admin user to Administrator
+UPDATE login SET account_type = 'Administrator' WHERE username = 'admin';
 
--- Insert sample users (password: admin123)
-INSERT INTO login (username, password, account_type) VALUES
-('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator'),
+-- Insert sample users if they don't exist
+INSERT IGNORE INTO login (username, password, account_type) VALUES
 ('manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Manager'),
 ('basic', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Basic');
 
 -- Insert sample clients
-INSERT INTO clients (reference, name, contact, email, phone, year_end) VALUES
+INSERT IGNORE INTO clients (reference, name, contact, email, phone, year_end) VALUES
 ('CLI001', 'ABC Company Ltd', 'John Smith', 'john@abccompany.com', '+44 1234 567890', '2024-03-31'),
 ('CLI002', 'XYZ Corporation', 'Jane Doe', 'jane@xyzcorp.com', '+44 9876 543210', '2024-12-31'),
 ('CLI003', 'Tech Solutions Inc', 'Bob Johnson', 'bob@techsolutions.com', '+44 5555 123456', '2024-06-30');
 
 -- Insert sample tasks
-INSERT INTO tasks (task_name, description) VALUES
+INSERT IGNORE INTO tasks (task_name, description) VALUES
 ('Bookkeeping', 'General bookkeeping and record keeping'),
 ('VAT Returns', 'Preparation and submission of VAT returns'),
 ('Payroll', 'Monthly payroll processing'),
 ('Tax Returns', 'Annual tax return preparation'),
 ('Audit', 'Financial audit and review'),
 ('Consultation', 'General business consultation');
+
+-- Show completion message
+SELECT 'Database update completed successfully!' as Status;
