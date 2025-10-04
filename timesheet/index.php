@@ -11,11 +11,24 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $message = '';
 $messageType = '';
+$editing_entry = null;
 
 // Get selected week (default to current week)
 $selected_week = $_GET['week'] ?? date('Y-W');
 $year = substr($selected_week, 0, 4);
 $week = substr($selected_week, 5, 2);
+
+// Handle edit entry request
+if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM timesheet WHERE id = ? AND user_id = ?");
+        $stmt->execute([$_GET['edit'], $user_id]);
+        $editing_entry = $stmt->fetch();
+    } catch (PDOException $e) {
+        $message = 'Failed to load entry for editing.';
+        $messageType = 'error';
+    }
+}
 
 // Calculate week dates
 $week_start = date('Y-m-d', strtotime($year . 'W' . str_pad($week, 2, '0', STR_PAD_LEFT)));
@@ -41,6 +54,7 @@ if ($_POST) {
     $task_id = $_POST['task_id'] ?? '';
     $time_spent = $_POST['time_spent'] ?? '';
     $description = trim($_POST['description'] ?? '');
+    $entry_id = $_POST['entry_id'] ?? '';
     
     // Validation
     if (empty($date) || empty($client_id) || empty($task_id) || empty($time_spent)) {
@@ -51,17 +65,25 @@ if ($_POST) {
         $messageType = 'error';
     } else {
         try {
-            // Insert timesheet entry
-            $stmt = $pdo->prepare("INSERT INTO timesheet (user_id, date, client_id, task_id, time_spent, description, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
-            $stmt->execute([$user_id, $date, $client_id, $task_id, $time_spent, $description]);
+            if (!empty($entry_id)) {
+                // Update existing entry
+                $stmt = $pdo->prepare("UPDATE timesheet SET date = ?, client_id = ?, task_id = ?, time_spent = ?, description = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
+                $stmt->execute([$date, $client_id, $task_id, $time_spent, $description, $entry_id, $user_id]);
+                $message = 'Timesheet entry updated successfully!';
+            } else {
+                // Insert new entry
+                $stmt = $pdo->prepare("INSERT INTO timesheet (user_id, date, client_id, task_id, time_spent, description, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())");
+                $stmt->execute([$user_id, $date, $client_id, $task_id, $time_spent, $description]);
+                $message = 'Timesheet entry added successfully!';
+            }
             
-            $message = 'Timesheet entry added successfully!';
             $messageType = 'success';
             
             // Clear form data
-            $date = $client_id = $task_id = $time_spent = $description = '';
+            $date = $client_id = $task_id = $time_spent = $description = $entry_id = '';
+            $editing_entry = null;
         } catch (PDOException $e) {
-            $message = 'Failed to add timesheet entry. Please try again.';
+            $message = 'Failed to save timesheet entry. Please try again.';
             $messageType = 'error';
         }
     }
@@ -185,10 +207,16 @@ for ($i = -12; $i <= 12; $i++) {
 
                     <!-- Main Content -->
                     <div class="calendar-main">
-                        <!-- Add Entry Form -->
+                        <!-- Add/Edit Entry Form -->
                         <div class="form-section">
-                            <h3 class="section-title">Add Timesheet Entry</h3>
+                            <h3 class="section-title">
+                                <?php echo $editing_entry ? 'Edit Timesheet Entry' : 'Add Timesheet Entry'; ?>
+                            </h3>
                             <form method="POST" action="">
+                                <?php if ($editing_entry): ?>
+                                    <input type="hidden" name="entry_id" value="<?php echo $editing_entry['id']; ?>">
+                                <?php endif; ?>
+                                
                                 <div class="form-layout">
                                     <div class="form-group">
                                         <label for="date" class="form-label">
@@ -196,7 +224,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             Date *
                                         </label>
                                         <input type="date" id="date" name="date" class="form-input" 
-                                               value="<?php echo $date ?? date('Y-m-d'); ?>" required>
+                                               value="<?php echo $editing_entry ? $editing_entry['date'] : ($date ?? date('Y-m-d')); ?>" required>
                                     </div>
 
                                     <div class="form-group">
@@ -208,7 +236,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             <option value="">Select a client</option>
                                             <?php foreach ($clients as $client): ?>
                                                 <option value="<?php echo $client['id']; ?>" 
-                                                        <?php echo ($client_id ?? '') == $client['id'] ? 'selected' : ''; ?>>
+                                                        <?php echo ($editing_entry ? $editing_entry['client_id'] : ($client_id ?? '')) == $client['id'] ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($client['name']); ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -224,7 +252,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             <option value="">Select a task</option>
                                             <?php foreach ($tasks as $task): ?>
                                                 <option value="<?php echo $task['id']; ?>" 
-                                                        <?php echo ($task_id ?? '') == $task['id'] ? 'selected' : ''; ?>>
+                                                        <?php echo ($editing_entry ? $editing_entry['task_id'] : ($task_id ?? '')) == $task['id'] ? 'selected' : ''; ?>>
                                                     <?php echo htmlspecialchars($task['task_name']); ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -237,7 +265,7 @@ for ($i = -12; $i <= 12; $i++) {
                                             Time Spent *
                                         </label>
                                         <input type="time" id="time_spent" name="time_spent" class="form-input" 
-                                               value="<?php echo $time_spent ?? ''; ?>" required>
+                                               value="<?php echo $editing_entry ? $editing_entry['time_spent'] : ($time_spent ?? ''); ?>" required>
                                     </div>
 
                                     <div class="form-group" style="grid-column: 1 / -1;">
@@ -246,16 +274,22 @@ for ($i = -12; $i <= 12; $i++) {
                                             Description (max 100 characters)
                                         </label>
                                         <textarea id="description" name="description" class="form-textarea" rows="3" 
-                                                  maxlength="100" placeholder="Brief description of work done"><?php echo htmlspecialchars($description ?? ''); ?></textarea>
+                                                  maxlength="100" placeholder="Brief description of work done"><?php echo htmlspecialchars($editing_entry ? $editing_entry['description'] : ($description ?? '')); ?></textarea>
                                         <small class="char-count">0/100 characters</small>
                                     </div>
                                 </div>
 
                                 <div class="form-actions">
                                     <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i>
-                                        Add Entry
+                                        <i class="fas fa-<?php echo $editing_entry ? 'save' : 'plus'; ?>"></i>
+                                        <?php echo $editing_entry ? 'Update Entry' : 'Add Entry'; ?>
                                     </button>
+                                    <?php if ($editing_entry): ?>
+                                        <a href="?" class="btn btn-secondary">
+                                            <i class="fas fa-times"></i>
+                                            Cancel Edit
+                                        </a>
+                                    <?php endif; ?>
                                 </div>
                             </form>
                         </div>
@@ -273,7 +307,10 @@ for ($i = -12; $i <= 12; $i++) {
                                         <div class="day-entries">
                                             <?php if (isset($entries_by_date[$day['date']])): ?>
                                                 <?php foreach ($entries_by_date[$day['date']] as $entry): ?>
-                                                    <div class="timesheet-entry" title="<?php echo htmlspecialchars($entry['description']); ?>">
+                                                    <div class="timesheet-entry" 
+                                                         title="<?php echo htmlspecialchars($entry['description']); ?>" 
+                                                         onclick="editEntry(<?php echo $entry['id']; ?>)"
+                                                         style="cursor: pointer;">
                                                         <div class="entry-client"><?php echo htmlspecialchars($entry['client_name']); ?></div>
                                                         <div class="entry-task"><?php echo htmlspecialchars($entry['task_name']); ?></div>
                                                         <div class="entry-time"><?php echo date('H:i', strtotime($entry['time_spent'])); ?></div>
@@ -310,6 +347,21 @@ for ($i = -12; $i <= 12; $i++) {
         
         // Initialize character count
         charCount.textContent = description.value.length + '/100 characters';
+        
+        // Edit entry function
+        function editEntry(entryId) {
+            window.location.href = '?edit=' + entryId;
+        }
+        
+        // Scroll to form when editing
+        <?php if ($editing_entry): ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.form-section').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        });
+        <?php endif; ?>
     </script>
 </body>
 </html>

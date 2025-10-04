@@ -968,6 +968,7 @@ select.form-input {
     .table-container {
         padding: 10px;
         border-radius: 10px;
+        margin: 0 -10px;
     }
     
     .data-table {
@@ -998,6 +999,43 @@ select.form-input {
     .usage-badge {
         font-size: 0.7rem;
         padding: 2px 6px;
+    }
+    
+    /* Form responses specific mobile fixes */
+    .responses-table th:nth-child(1),
+    .responses-table td:nth-child(1) {
+        min-width: 50px;
+        max-width: 60px;
+    }
+    
+    .responses-table th:nth-child(2),
+    .responses-table td:nth-child(2) {
+        min-width: 100px;
+        max-width: 120px;
+    }
+    
+    .responses-table th:nth-child(3),
+    .responses-table td:nth-child(3) {
+        min-width: 150px;
+        max-width: 180px;
+    }
+    
+    .responses-table th:nth-child(4),
+    .responses-table td:nth-child(4) {
+        min-width: 100px;
+        max-width: 120px;
+    }
+    
+    .responses-table th:nth-child(5),
+    .responses-table td:nth-child(5) {
+        min-width: 200px;
+        max-width: 250px;
+    }
+    
+    .responses-table th:nth-child(6),
+    .responses-table td:nth-child(6) {
+        min-width: 100px;
+        max-width: 120px;
     }
 }
 
@@ -1207,38 +1245,62 @@ select.form-input {
     .nav-container {
         flex-wrap: wrap;
         min-height: 60px;
+        padding: 0 15px;
     }
     
     .nav-logo {
         font-size: 1.2rem;
+        flex-shrink: 0;
     }
     
     .nav-logo i {
         font-size: 1.4rem;
     }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    
+    .nav-link {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
 }
 
 @media (max-width: 480px) {
     .nav-container {
-        flex-direction: column;
-        height: auto;
-        padding: 10px 15px;
+        flex-direction: row;
+        height: 60px;
+        padding: 0 10px;
+        justify-content: space-between;
+        align-items: center;
     }
     
     .nav-logo {
-        margin-bottom: 10px;
-        font-size: 1.1rem;
+        font-size: 1rem;
+        flex-shrink: 0;
     }
     
     .nav-menu {
-        width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        gap: 5px;
+        justify-content: flex-end;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
     
     .nav-link {
-        padding: 8px 12px;
-        font-size: 0.8rem;
+        padding: 6px 8px;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    
+    .nav-link i {
+        display: none; /* Hide icons on very small screens */
     }
 }
 
