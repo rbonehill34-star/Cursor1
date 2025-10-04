@@ -87,7 +87,7 @@ if ($_POST) {
                                 Username
                             </label>
                             <input type="text" id="username" name="username" class="form-input" 
-                                   value="<?php echo htmlspecialchars($username ?? ''); ?>" required>
+                                   placeholder="Enter your username" required>
                         </div>
 
                         <div class="form-group">
@@ -106,9 +106,9 @@ if ($_POST) {
 
                     <div class="login-footer">
                         <p>Don't have an account?</p>
-                        <a href="../register" class="btn btn-secondary">
+                        <a href="../register" class="btn btn-success">
                             <i class="fas fa-user-plus"></i>
-                            Create New Login
+                            Set Up New Account
                         </a>
                     </div>
                 </div>
