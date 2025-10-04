@@ -1,0 +1,44 @@
+-- Database setup script for cPanel hosting
+-- Run this in cPanel phpMyAdmin to create the database and tables
+
+-- Create database (if it doesn't exist)
+-- Note: In cPanel, you may need to create the database through the cPanel interface first
+-- Database name: a1e750tdxgba_cursor1
+
+-- Use the database
+USE a1e750tdxgba_cursor1;
+
+-- Create the formresponse table
+CREATE TABLE IF NOT EXISTS formresponse (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    telephone VARCHAR(50),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create the login table
+CREATE TABLE IF NOT EXISTS login (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Add indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_email ON formresponse(email);
+CREATE INDEX IF NOT EXISTS idx_created_at ON formresponse(created_at);
+CREATE INDEX IF NOT EXISTS idx_username ON login(username);
+
+-- Insert sample form data (optional)
+INSERT INTO formresponse (name, email, telephone, message) VALUES
+('John Doe', 'john@example.com', '+1-555-0123', 'This is a sample message from John.'),
+('Jane Smith', 'jane@example.com', '+1-555-0456', 'Another sample message from Jane.'),
+('Bob Johnson', 'bob@example.com', '+1-555-0789', 'Sample message from Bob for testing purposes.');
+
+-- Insert sample admin user (password: admin123)
+INSERT INTO login (username, password) VALUES
+('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
