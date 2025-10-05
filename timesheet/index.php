@@ -42,13 +42,13 @@ if (isset($_GET['date']) && !isset($_GET['edit'])) {
     ];
 }
 
-// Calculate week dates
+// Calculate week dates (Monday to Sunday)
 $week_start = date('Y-m-d', strtotime($year . 'W' . str_pad($week, 2, '0', STR_PAD_LEFT)));
-$week_end = date('Y-m-d', strtotime($week_start . ' +5 days'));
+$week_end = date('Y-m-d', strtotime($week_start . ' +6 days'));
 
-// Get week days (Monday to Saturday)
+// Get week days (Monday to Sunday)
 $week_days = [];
-for ($i = 0; $i < 6; $i++) {
+for ($i = 0; $i < 7; $i++) {
     $date = date('Y-m-d', strtotime($week_start . " +$i days"));
     $week_days[] = [
         'date' => $date,
@@ -67,6 +67,7 @@ if ($_POST) {
     $time_spent = $_POST['time_spent'] ?? '';
     $description = trim($_POST['description'] ?? '');
     $entry_id = $_POST['entry_id'] ?? '';
+    $action = $_POST['action'] ?? 'add';
     
     // Validation
     if (empty($date) || empty($client_id) || empty($task_id) || empty($time_spent)) {
@@ -75,9 +76,12 @@ if ($_POST) {
     } elseif (strlen($description) > 100) {
         $message = 'Description must be 100 characters or less.';
         $messageType = 'error';
+    } elseif ($action === 'update' && empty($entry_id)) {
+        $message = 'No entry selected for update.';
+        $messageType = 'error';
     } else {
         try {
-            if (!empty($entry_id)) {
+            if ($action === 'update' && !empty($entry_id)) {
                 // Update existing entry
                 $stmt = $pdo->prepare("UPDATE timesheet SET date = ?, client_id = ?, task_id = ?, time_spent = ?, description = ?, updated_at = NOW() WHERE id = ? AND user_id = ?");
                 $stmt->execute([$date, $client_id, $task_id, $time_spent, $description, $entry_id, $user_id]);
@@ -130,9 +134,27 @@ try {
     foreach ($timesheet_entries as $entry) {
         $entries_by_date[$entry['date']][] = $entry;
     }
+    
+    // Calculate daily totals
+    $daily_totals = [];
+    foreach ($week_days as $day) {
+        $total_seconds = 0;
+        if (isset($entries_by_date[$day['date']])) {
+            foreach ($entries_by_date[$day['date']] as $entry) {
+                $time_parts = explode(':', $entry['time_spent']);
+                $total_seconds += ($time_parts[0] * 3600) + ($time_parts[1] * 60);
+            }
+        }
+        $daily_totals[$day['date']] = [
+            'hours' => floor($total_seconds / 3600),
+            'minutes' => floor(($total_seconds % 3600) / 60),
+            'total_seconds' => $total_seconds
+        ];
+    }
 } catch (PDOException $e) {
     $timesheet_entries = [];
     $entries_by_date = [];
+    $daily_totals = [];
 }
 
 // Get available weeks for calendar
@@ -140,7 +162,7 @@ $available_weeks = [];
 for ($i = -12; $i <= 12; $i++) {
     $week_date = date('Y-m-d', strtotime("$i weeks"));
     $week_number = date('Y-W', strtotime($week_date));
-    $week_label = date('M j', strtotime($week_date)) . ' - ' . date('M j, Y', strtotime($week_date . ' +5 days'));
+    $week_label = date('M j', strtotime($week_date)) . ' - ' . date('M j, Y', strtotime($week_date . ' +6 days'));
     $available_weeks[$week_number] = $week_label;
 }
 ?>
@@ -213,7 +235,7 @@ for ($i = -12; $i <= 12; $i++) {
                         
                         <div class="week-info">
                             <h4>Week of <?php echo date('M j, Y', strtotime($week_start)); ?></h4>
-                            <p>Monday to Saturday</p>
+                            <p>Monday to Sunday</p>
                         </div>
                     </div>
 
@@ -233,9 +255,7 @@ for ($i = -12; $i <= 12; $i++) {
                                 ?>
                             </h3>
                             <form method="POST" action="">
-                                <?php if ($editing_entry): ?>
-                                    <input type="hidden" name="entry_id" value="<?php echo $editing_entry['id']; ?>">
-                                <?php endif; ?>
+                                <input type="hidden" name="entry_id" id="entry_id" value="<?php echo $editing_entry ? $editing_entry['id'] : ''; ?>">
                                 
                                 <div class="form-layout">
                                     <div class="form-group">
@@ -300,20 +320,22 @@ for ($i = -12; $i <= 12; $i++) {
                                 </div>
 
                                 <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="fas fa-<?php echo $editing_entry ? 'save' : 'plus'; ?>"></i>
-                                        <?php echo $editing_entry ? 'Update Entry' : 'Add Entry'; ?>
+                                    <button type="submit" name="action" value="add" class="btn btn-primary" id="add-btn">
+                                        <i class="fas fa-plus"></i>
+                                        Add Entry
                                     </button>
-                                    <?php if ($editing_entry): ?>
-                                        <button type="button" class="btn btn-success" onclick="copyEntry()">
-                                            <i class="fas fa-copy"></i>
-                                            Copy Entry
-                                        </button>
-                                        <a href="?" class="btn btn-secondary">
-                                            <i class="fas fa-times"></i>
-                                            Cancel Edit
-                                        </a>
-                                    <?php endif; ?>
+                                    <button type="submit" name="action" value="update" class="btn btn-success" id="update-btn" style="display: none;">
+                                        <i class="fas fa-save"></i>
+                                        Update Entry
+                                    </button>
+                                    <button type="submit" name="action" value="add" class="btn btn-info" id="add-new-btn" style="display: none;" onclick="clearEntryId()">
+                                        <i class="fas fa-plus"></i>
+                                        Add Entry
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="clearForm()" id="clear-btn">
+                                        <i class="fas fa-times"></i>
+                                        Clear Form
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -323,27 +345,33 @@ for ($i = -12; $i <= 12; $i++) {
                             <h3 class="section-title">Week View</h3>
                             <div class="week-view">
                                 <?php foreach ($week_days as $day): ?>
-                                    <div class="day-column <?php echo $day['is_today'] ? 'today' : ''; ?>">
+                                    <div class="day-column <?php echo $day['is_today'] ? 'today' : ''; ?>" 
+                                         onclick="selectDay('<?php echo $day['date']; ?>')"
+                                         data-date="<?php echo $day['date']; ?>">
                                         <div class="day-header">
                                             <div><?php echo $day['day_short']; ?></div>
                                             <div><?php echo $day['day_number']; ?></div>
                                         </div>
-                                        <div class="day-entries">
-                                            <?php if (isset($entries_by_date[$day['date']])): ?>
-                                                <?php foreach ($entries_by_date[$day['date']] as $entry): ?>
-                                                    <div class="timesheet-entry" 
-                                                         title="<?php echo htmlspecialchars($entry['description']); ?>" 
-                                                         onclick="editEntry(<?php echo $entry['id']; ?>)"
-                                                         style="cursor: pointer;">
-                                                        <div class="entry-client"><?php echo htmlspecialchars($entry['client_name']); ?></div>
-                                                        <div class="entry-task"><?php echo htmlspecialchars($entry['task_name']); ?></div>
-                                                        <div class="entry-time"><?php echo date('H:i', strtotime($entry['time_spent'])); ?></div>
-                                                    </div>
-                                                <?php endforeach; ?>
+                                        <div class="total-time">
+                                            <?php 
+                                            $total = $daily_totals[$day['date']] ?? ['hours' => 0, 'minutes' => 0];
+                                            if ($total['hours'] > 0 || $total['minutes'] > 0): 
+                                            ?>
+                                                <?php echo $total['hours']; ?>h <?php echo $total['minutes']; ?>m
+                                            <?php else: ?>
+                                                0h 0m
                                             <?php endif; ?>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
+                            </div>
+                        </div>
+
+                        <!-- Selected Day Entries -->
+                        <div class="selected-day-section" id="selected-day-section" style="display: none;">
+                            <h3 class="section-title">Selected Day Entries</h3>
+                            <div class="selected-day-entries" id="selected-day-entries">
+                                <!-- Entries will be populated by JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -359,6 +387,9 @@ for ($i = -12; $i <= 12; $i++) {
     </footer>
 
     <script>
+        // Timesheet entries data
+        const timesheetEntries = <?php echo json_encode($entries_by_date); ?>;
+        
         // Character counter for description
         const description = document.getElementById('description');
         const charCount = document.querySelector('.char-count');
@@ -398,15 +429,151 @@ for ($i = -12; $i <= 12; $i++) {
             window.location.href = '?' + params.toString();
         }
         
-        // Scroll to form when editing
-        <?php if ($editing_entry): ?>
+        // Select day function
+        function selectDay(date) {
+            // Remove highlight from all days
+            document.querySelectorAll('.day-column').forEach(day => {
+                day.classList.remove('selected');
+            });
+            
+            // Add highlight to selected day
+            const selectedDay = document.querySelector(`[data-date="${date}"]`);
+            selectedDay.classList.add('selected');
+            
+            // Show selected day entries
+            const selectedDaySection = document.getElementById('selected-day-section');
+            const selectedDayEntries = document.getElementById('selected-day-entries');
+            
+            if (timesheetEntries[date] && timesheetEntries[date].length > 0) {
+                let entriesHtml = `
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th>Client</th>
+                                <th>Description</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                timesheetEntries[date].forEach(entry => {
+                    const description = entry.description || 'No description';
+                    const descriptionTruncated = description.length > 40 ? description.substring(0, 40) + '...' : description;
+                    const timeFormatted = entry.time_spent.substring(0, 5); // Remove seconds
+                    
+                    entriesHtml += `
+                        <tr onclick="selectEntryRow(this, ${entry.id})">
+                            <td class="entry-client">${entry.client_name}</td>
+                            <td class="entry-description">${descriptionTruncated}</td>
+                            <td class="entry-time">${timeFormatted}</td>
+                        </tr>
+                    `;
+                });
+                
+                entriesHtml += `
+                        </tbody>
+                    </table>
+                `;
+                selectedDayEntries.innerHTML = entriesHtml;
+                selectedDaySection.style.display = 'block';
+            } else {
+                selectedDayEntries.innerHTML = '<p class="no-entries">No entries for this day.</p>';
+                selectedDaySection.style.display = 'block';
+            }
+        }
+        
+        // Select entry row and populate form
+        function selectEntryRow(row, entryId) {
+            // Remove selection from all rows
+            document.querySelectorAll('.entries-table tr').forEach(r => {
+                r.classList.remove('selected');
+            });
+            
+            // Add selection to clicked row
+            row.classList.add('selected');
+            
+            // Populate form
+            populateForm(entryId);
+        }
+        
+        // Populate form with entry data
+        function populateForm(entryId) {
+            // Find the entry in our data
+            for (const date in timesheetEntries) {
+                const entry = timesheetEntries[date].find(e => e.id == entryId);
+                if (entry) {
+                    document.getElementById('date').value = entry.date;
+                    document.getElementById('client_id').value = entry.client_id;
+                    document.getElementById('task_id').value = entry.task_id;
+                    document.getElementById('time_spent').value = entry.time_spent;
+                    document.getElementById('description').value = entry.description || '';
+                    
+                    // Store the entry ID for update functionality
+                    document.getElementById('entry_id').value = entryId;
+                    
+                    // Show update and add new buttons, hide add button
+                    document.getElementById('add-btn').style.display = 'none';
+                    document.getElementById('update-btn').style.display = 'inline-flex';
+                    document.getElementById('add-new-btn').style.display = 'inline-flex';
+                    
+                    // Update character count
+                    charCount.textContent = (entry.description || '').length + '/100 characters';
+                    
+                    // Scroll to form
+                    document.querySelector('.form-section').scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: 'start' 
+                    });
+                    break;
+                }
+            }
+        }
+        
+        // Clear entry ID function (called when + Add Entry button is clicked)
+        function clearEntryId() {
+            // Clear the entry ID so it creates a new entry instead of updating
+            document.getElementById('entry_id').value = '';
+        }
+        
+        // Clear form function
+        function clearForm() {
+            document.getElementById('date').value = '';
+            document.getElementById('client_id').value = '';
+            document.getElementById('task_id').value = '';
+            document.getElementById('time_spent').value = '';
+            document.getElementById('description').value = '';
+            
+            // Clear entry ID
+            document.getElementById('entry_id').value = '';
+            
+            // Show add button, hide update and add new buttons
+            document.getElementById('add-btn').style.display = 'inline-flex';
+            document.getElementById('update-btn').style.display = 'none';
+            document.getElementById('add-new-btn').style.display = 'none';
+            
+            // Clear row selection
+            document.querySelectorAll('.entries-table tr').forEach(r => {
+                r.classList.remove('selected');
+            });
+            
+            // Update character count
+            charCount.textContent = '0/100 characters';
+        }
+        
+        // Initialize with current day selected
         document.addEventListener('DOMContentLoaded', function() {
+            const today = '<?php echo date('Y-m-d'); ?>';
+            selectDay(today);
+            
+            // Scroll to form when editing
+            <?php if ($editing_entry): ?>
             document.querySelector('.form-section').scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'start' 
             });
+            <?php endif; ?>
         });
-        <?php endif; ?>
     </script>
 </body>
 </html>

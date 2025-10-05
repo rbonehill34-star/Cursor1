@@ -175,6 +175,19 @@ try {
                             Manage Clients
                         </a>
                     </div>
+
+                    <!-- Jobs - Available to Managers and Administrators -->
+                    <div class="portal-card">
+                        <div class="portal-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3>Jobs</h3>
+                        <p>Manage jobs and track their progress</p>
+                        <a href="../jobs" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Manage Jobs
+                        </a>
+                    </div>
                     <?php endif; ?>
 
                     <?php if ($account_type === 'Administrator'): ?>
