@@ -136,7 +136,7 @@ try {
                 </div>
 
                 <div class="portal-grid">
-                    <!-- Timesheet - Available to all users -->
+                    <!-- 1. Timesheet - Available to all users -->
                     <div class="portal-card">
                         <div class="portal-icon">
                             <i class="fas fa-clock"></i>
@@ -149,7 +149,48 @@ try {
                         </a>
                     </div>
 
-                    <!-- Tasks - Available to all users -->
+                    <!-- 2. My Job List - Available to all users -->
+                    <div class="portal-card">
+                        <div class="portal-icon">
+                            <i class="fas fa-list-check"></i>
+                        </div>
+                        <h3>My Job List</h3>
+                        <p>View jobs assigned to you, organized by status</p>
+                        <a href="../myjobs" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            View My Jobs
+                        </a>
+                    </div>
+
+                    <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
+                    <!-- 3. Jobs - Available to Managers and Administrators -->
+                    <div class="portal-card">
+                        <div class="portal-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3>Jobs</h3>
+                        <p>Manage jobs and track their progress</p>
+                        <a href="../jobs" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Manage Jobs
+                        </a>
+                    </div>
+
+                    <!-- 4. Clients - Available to Managers and Administrators -->
+                    <div class="portal-card">
+                        <div class="portal-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3>Clients</h3>
+                        <p>Manage client information and details</p>
+                        <a href="../clients" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Manage Clients
+                        </a>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- 5. Tasks - Available to all users -->
                     <div class="portal-card">
                         <div class="portal-icon">
                             <i class="fas fa-tasks"></i>
@@ -162,36 +203,8 @@ try {
                         </a>
                     </div>
 
-                    <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
-                    <!-- Clients - Available to Managers and Administrators -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h3>Clients</h3>
-                        <p>Manage client information and details</p>
-                        <a href="../clients" class="btn btn-primary">
-                            <i class="fas fa-arrow-right"></i>
-                            Manage Clients
-                        </a>
-                    </div>
-
-                    <!-- Jobs - Available to Managers and Administrators -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <h3>Jobs</h3>
-                        <p>Manage jobs and track their progress</p>
-                        <a href="../jobs" class="btn btn-primary">
-                            <i class="fas fa-arrow-right"></i>
-                            Manage Jobs
-                        </a>
-                    </div>
-                    <?php endif; ?>
-
                     <?php if ($account_type === 'Administrator'): ?>
-                    <!-- Contact Form Responses - Administrator only -->
+                    <!-- 6. Contact Form Responses - Administrator only -->
                     <div class="portal-card">
                         <div class="portal-icon">
                             <i class="fas fa-envelope"></i>
