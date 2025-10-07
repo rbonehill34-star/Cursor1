@@ -40,7 +40,7 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Contact Us - Cursor1</title>
+    <title>Contact Us - RJ Accountancy Limited</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -49,12 +49,21 @@ if ($_POST) {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-database"></i>
-                <span>Cursor1</span>
+                <img src="../assets/images/RJA-icon Blue.png" alt="RJ Accountancy Logo" style="height: 30px; margin-right: 10px;">
+                <span>RJ Accountancy</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="../home" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../about" class="nav-link">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../services" class="nav-link">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../fees" class="nav-link">Fees</a>
                 </li>
                 <li class="nav-item">
                     <a href="../contact" class="nav-link active">Contact</a>
@@ -81,6 +90,7 @@ if ($_POST) {
                                 <i class="fas fa-envelope"></i>
                             </div>
                             <h3>Email Us</h3>
+                            <p>info@rjaccountancy.co.uk</p>
                             <p>Send us an email and we'll respond within 24 hours.</p>
                         </div>
                         <div class="info-card">
@@ -88,6 +98,7 @@ if ($_POST) {
                                 <i class="fas fa-phone"></i>
                             </div>
                             <h3>Call Us</h3>
+                            <p>01526 354 687</p>
                             <p>Give us a call during business hours.</p>
                         </div>
                         <div class="info-card">
@@ -157,7 +168,8 @@ if ($_POST) {
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Cursor1. All rights reserved.</p>
+            <p>&copy; 2025 RJ Accountancy Limited. All rights reserved.</p>
+            <p>Director: Rob Bonehill (FCA)</p>
         </div>
     </footer>
 </body>

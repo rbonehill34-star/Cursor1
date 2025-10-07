@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
+  <!-- RJ Accountancy Logo - White Version -->
+  <!-- Central checkmark -->
+  <path d="M18 27 L27 36 L42 18" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Upper-left circular segment -->
+  <path d="M30 12 A18 18 0 0 1 12 30" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Bottom-right circular segment -->
+  <path d="M30 48 A18 18 0 0 1 48 30" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+</svg>

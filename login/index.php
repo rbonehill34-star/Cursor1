@@ -36,7 +36,7 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Login - Cursor1</title>
+    <title>Login - RJ Accountancy Limited</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -45,12 +45,21 @@ if ($_POST) {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-database"></i>
-                <span>Cursor1</span>
+                <img src="../assets/images/RJA-icon Blue.png" alt="RJ Accountancy Logo" style="height: 30px; margin-right: 10px;">
+                <span>RJ Accountancy</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="../home" class="nav-link">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../about" class="nav-link">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../services" class="nav-link">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../fees" class="nav-link">Fees</a>
                 </li>
                 <li class="nav-item">
                     <a href="../contact" class="nav-link">Contact</a>

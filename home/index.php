@@ -6,7 +6,8 @@ require_once '../config/database.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cursor1 - Database Management</title>
+    <title>RJ Accountancy Limited - Chartered Accountants</title>
+    <meta name="description" content="Professional chartered accountancy services with fixed fee pricing. Company accounts, self-assessment, VAT returns, and tax planning.">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,12 +16,21 @@ require_once '../config/database.php';
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-database"></i>
-                <span>Cursor1</span>
+                <img src="../assets/images/RJA-icon Blue.png" alt="RJ Accountancy Logo" style="height: 30px; margin-right: 10px;">
+                <span>RJ Accountancy</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
                     <a href="../home" class="nav-link active">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../about" class="nav-link">About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../services" class="nav-link">Services</a>
+                </li>
+                <li class="nav-item">
+                    <a href="../fees" class="nav-link">Fees</a>
                 </li>
                 <li class="nav-item">
                     <a href="../contact" class="nav-link">Contact</a>
@@ -36,51 +46,96 @@ require_once '../config/database.php';
         <div class="hero-section">
             <div class="hero-content">
                 <div class="hero-icon">
-                    <i class="fas fa-database"></i>
+                    <img src="../assets/images/RJA-icon white.png" alt="RJ Accountancy Logo" style="height: 80px; opacity: 0.9;">
                 </div>
-                <h1 class="hero-title">Welcome to Cursor1</h1>
-                <p class="hero-subtitle">This is my new database</p>
+                <h1 class="hero-title">RJ Accountancy Limited</h1>
+                <p class="hero-subtitle">Chartered Accountants</p>
                 <div class="hero-description">
-                    <p>A modern, efficient database management system built with PHP and MySQL. 
-                    Experience seamless data handling with our intuitive interface.</p>
+                    <p>Professional chartered accountancy services with transparent, fixed fee pricing. 
+                    We provide company accounts, self-assessment returns, VAT services, and expert tax planning 
+                    to help your business grow and thrive.</p>
                 </div>
                 <div class="hero-actions">
                     <a href="../contact" class="btn btn-primary">
                         <i class="fas fa-envelope"></i>
                         Get in Touch
                     </a>
-                    <a href="../login" class="btn btn-secondary">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Admin Login
+                    <a href="../fees" class="btn btn-secondary">
+                        <i class="fas fa-pound-sign"></i>
+                        View Our Fees
                     </a>
                 </div>
             </div>
         </div>
 
-        <section id="features" class="features-section">
+        <section id="services" class="features-section">
             <div class="container">
-                <h2 class="section-title">Database Features</h2>
+                <h2 class="section-title">Our Services</h2>
                 <div class="features-grid">
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-building"></i>
                         </div>
-                        <h3>Secure</h3>
-                        <p>Advanced security measures to protect your data with encrypted connections and secure authentication.</p>
+                        <h3>Company Accounts</h3>
+                        <p>Professional preparation and filing of company accounts with Companies House and Corporation Tax returns with HMRC. Clear, transparent pricing based on turnover.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-bolt"></i>
+                            <i class="fas fa-user"></i>
                         </div>
-                        <h3>Fast</h3>
-                        <p>Optimized queries and efficient data structures ensure lightning-fast response times.</p>
+                        <h3>Self Assessment</h3>
+                        <p>Expert self-assessment tax return preparation for individuals, sole traders, and partnerships. From basic returns to complex business accounts.</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">
-                            <i class="fas fa-cogs"></i>
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <h3>Reliable</h3>
-                        <p>Built with reliability in mind, ensuring your data is always available when you need it.</p>
+                        <h3>VAT & Tax Planning</h3>
+                        <p>Comprehensive VAT return services and strategic tax planning to help you save money and stay compliant with HMRC requirements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact-info" class="contact-section">
+            <div class="container">
+                <div class="contact-header">
+                    <h2 class="contact-title">Get Professional Accountancy Help</h2>
+                    <p class="contact-subtitle">Clear costs, transparent pricing, and expert service</p>
+                </div>
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <h3>Email Us</h3>
+                            <p>info@rjaccountancy.co.uk</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <h3>Call Us</h3>
+                            <p>01526 354 687</p>
+                        </div>
+                        <div class="info-card">
+                            <div class="info-icon">
+                                <i class="fas fa-pound-sign"></i>
+                            </div>
+                            <h3>Fixed Fee Pricing</h3>
+                            <p>Transparent costs with no hidden charges</p>
+                        </div>
+                    </div>
+                    <div class="contact-form-container">
+                        <h3>Quick Enquiry</h3>
+                        <p>Use our contact form for Company Accounts or Self Assessment help</p>
+                        <div style="margin-top: 20px;">
+                            <a href="../contact" class="btn btn-primary">
+                                <i class="fas fa-envelope"></i>
+                                Contact Us
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -89,7 +144,8 @@ require_once '../config/database.php';
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2024 Cursor1. All rights reserved.</p>
+            <p>&copy; 2025 RJ Accountancy Limited. All rights reserved.</p>
+            <p>Director: Rob Bonehill (FCA)</p>
         </div>
     </footer>
 </body>

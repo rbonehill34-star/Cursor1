@@ -8,16 +8,94 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-$account_type = $_SESSION['account_type'] ?? 'Basic';
 $user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'] ?? 'User';
+$account_type = $_SESSION['account_type'] ?? 'Basic';
+$message = '';
+$messageType = '';
 
-// Get current tab from URL parameter
-$current_tab = $_GET['tab'] ?? 'all';
+// Get the active tab from URL parameter, default to 'all'
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'all';
 
-// Define tabs based on user role
+// Function to get jobs based on tab and user role
+function getJobsByTab($pdo, $user_id, $account_type, $tab) {
+    $base_query = "
+        SELECT j.*, 
+               c.name as client_name, 
+               c.reference as client_reference,
+               t.task_name,
+               s.state_name
+        FROM jobs j
+        LEFT JOIN clients c ON j.client_id = c.id
+        LEFT JOIN tasks t ON j.task_id = t.id
+        LEFT JOIN state s ON j.state_id = s.id
+        WHERE s.state_name != 'Archived'
+        AND (j.partner_id = ? OR j.manager_id = ? OR j.preparer_id = ?)
+    ";
+    
+    $params = [$user_id, $user_id, $user_id];
+    
+    // Add state filter based on tab
+    switch ($tab) {
+        case 'all':
+            // No additional filter for 'all'
+            break;
+        case 'prepare':
+            $base_query .= " AND s.state_name = 'Prepare'";
+            break;
+        case 'returned':
+            $base_query .= " AND s.state_name = 'Returned'";
+            break;
+        case 'review':
+            if (in_array($account_type, ['Manager', 'Administrator'])) {
+                $base_query .= " AND s.state_name = 'Review'";
+            } else {
+                return []; // Basic users don't see review tab
+            }
+            break;
+        case 'with-client':
+            if ($account_type === 'Administrator') {
+                $base_query .= " AND s.state_name = 'With Client'";
+            } else {
+                return []; // Only admins see this tab
+            }
+            break;
+        case 'paid-approved':
+            if ($account_type === 'Administrator') {
+                $base_query .= " AND (s.state_name = 'Paid not approved' OR s.state_name = 'Approved not paid')";
+            } else {
+                return []; // Only admins see this tab
+            }
+            break;
+        case 'submit':
+            if ($account_type === 'Administrator') {
+                $base_query .= " AND s.state_name = 'Submit'";
+            } else {
+                return []; // Only admins see this tab
+            }
+            break;
+        case 'other':
+            $base_query .= " AND s.state_name = 'Other'";
+            break;
+        default:
+            return [];
+    }
+    
+    $base_query .= " ORDER BY j.expected_completion_date ASC, j.created_at DESC";
+    
+    try {
+        $stmt = $pdo->prepare($base_query);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+// Get jobs for the active tab
+$jobs = getJobsByTab($pdo, $user_id, $account_type, $active_tab);
+
+// Define available tabs based on user role
 $available_tabs = ['all' => 'All'];
-
 if ($account_type === 'Basic') {
     $available_tabs['prepare'] = 'Prepare';
     $available_tabs['returned'] = 'Returned';
@@ -29,70 +107,11 @@ if ($account_type === 'Basic') {
     $available_tabs['other'] = 'Other';
 } elseif ($account_type === 'Administrator') {
     $available_tabs['prepare'] = 'Prepare';
-    $available_tabs['returned'] = 'Returned';
     $available_tabs['review'] = 'Review';
     $available_tabs['with-client'] = 'With Client';
-    $available_tabs['paid-not-approved'] = 'Paid not approved';
-    $available_tabs['approved-not-paid'] = 'Approved not paid';
+    $available_tabs['paid-approved'] = 'Paid/Approved';
     $available_tabs['submit'] = 'Submit';
-    $available_tabs['completed'] = 'Completed';
     $available_tabs['other'] = 'Other';
-}
-
-// Validate tab
-if (!array_key_exists($current_tab, $available_tabs)) {
-    $current_tab = 'all';
-}
-
-// Build the SQL query based on current tab and user role
-try {
-    $where_conditions = [];
-    $params = [$user_id];
-    
-    // Base condition: jobs assigned to the logged-in user
-    $where_conditions[] = "(j.preparer_id = ? OR j.manager_id = ? OR j.partner_id = ?)";
-    $params = [$user_id, $user_id, $user_id];
-    
-    // Add tab-specific filtering
-    if ($current_tab !== 'all') {
-        $where_conditions[] = "s.state_name = ?";
-        $params[] = ucwords(str_replace('-', ' ', $current_tab));
-    }
-    
-    $where_clause = implode(' AND ', $where_conditions);
-    
-    $stmt = $pdo->prepare("
-        SELECT j.*, 
-               c.name as client_name, 
-               c.reference as client_reference,
-               t.task_name,
-               s.state_name,
-               p.username as partner_name,
-               m.username as manager_name,
-               pr.username as preparer_name
-        FROM jobs j
-        LEFT JOIN clients c ON j.client_id = c.id
-        LEFT JOIN tasks t ON j.task_id = t.id
-        LEFT JOIN state s ON j.state_id = s.id
-        LEFT JOIN login p ON j.partner_id = p.id
-        LEFT JOIN login m ON j.manager_id = m.id
-        LEFT JOIN login pr ON j.preparer_id = pr.id
-        WHERE $where_clause
-        ORDER BY 
-            CASE 
-                WHEN j.expected_completion_date IS NOT NULL THEN j.expected_completion_date
-                WHEN j.deadline_date IS NOT NULL THEN j.deadline_date
-                ELSE j.created_at
-            END ASC
-    ");
-    
-    $stmt->execute($params);
-    $jobs = $stmt->fetchAll();
-    
-} catch (PDOException $e) {
-    $jobs = [];
-    $message = 'Failed to load jobs.';
-    $messageType = 'error';
 }
 ?>
 <!DOCTYPE html>
@@ -109,7 +128,7 @@ try {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-briefcase"></i>
+                <i class="fas fa-list-check"></i>
                 <span>My Job List</span>
             </div>
             <ul class="nav-menu">
@@ -131,73 +150,35 @@ try {
             <div class="container">
                 <div class="page-header">
                     <h1 class="page-title">My Job List</h1>
-                    <p class="page-subtitle">Welcome back, <?php echo htmlspecialchars($username); ?>! (<?php echo $account_type; ?>)</p>
+                    <p class="page-subtitle">Jobs assigned to you</p>
                 </div>
 
-                <!-- Tab Navigation -->
-                <div class="tab-navigation">
-                    <?php foreach ($available_tabs as $tab_key => $tab_label): ?>
-                        <a href="?tab=<?php echo $tab_key; ?>" 
-                           class="tab-link <?php echo $current_tab === $tab_key ? 'active' : ''; ?>">
-                            <?php echo htmlspecialchars($tab_label); ?>
-                            <?php 
-                            // Show count for each tab
-                            if ($tab_key !== 'all') {
-                                try {
-                                    $count_stmt = $pdo->prepare("
-                                        SELECT COUNT(*) as count
-                                        FROM jobs j
-                                        LEFT JOIN state s ON j.state_id = s.id
-                                        WHERE (j.preparer_id = ? OR j.manager_id = ? OR j.partner_id = ?)
-                                        AND s.state_name = ?
-                                    ");
-                                    $count_stmt->execute([$user_id, $user_id, $user_id, ucwords(str_replace('-', ' ', $tab_key))]);
-                                    $count = $count_stmt->fetch()['count'];
-                                    if ($count > 0) {
-                                        echo '<span class="tab-count">' . $count . '</span>';
-                                    }
-                                } catch (PDOException $e) {
-                                    // Ignore count errors
-                                }
-                            } else {
-                                try {
-                                    $count_stmt = $pdo->prepare("
-                                        SELECT COUNT(*) as count
-                                        FROM jobs j
-                                        WHERE (j.preparer_id = ? OR j.manager_id = ? OR j.partner_id = ?)
-                                    ");
-                                    $count_stmt->execute([$user_id, $user_id, $user_id]);
-                                    $count = $count_stmt->fetch()['count'];
-                                    if ($count > 0) {
-                                        echo '<span class="tab-count">' . $count . '</span>';
-                                    }
-                                } catch (PDOException $e) {
-                                    // Ignore count errors
-                                }
-                            }
-                            ?>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-
-                <?php if (isset($message)): ?>
+                <?php if ($message): ?>
                     <div class="alert alert-<?php echo $messageType; ?>">
                         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-circle'; ?>"></i>
                         <?php echo htmlspecialchars($message); ?>
                     </div>
                 <?php endif; ?>
 
+                <!-- Tab Navigation -->
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <?php foreach ($available_tabs as $tab_key => $tab_label): ?>
+                            <a href="?tab=<?php echo $tab_key; ?>" 
+                               class="tab <?php echo $active_tab === $tab_key ? 'active' : ''; ?>">
+                                <?php echo htmlspecialchars($tab_label); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
                 <?php if (empty($jobs)): ?>
                     <div class="empty-state">
                         <div class="empty-icon">
-                            <i class="fas fa-briefcase"></i>
+                            <i class="fas fa-list-check"></i>
                         </div>
-                        <h3>No jobs found</h3>
-                        <p>You don't have any jobs in the "<?php echo htmlspecialchars($available_tabs[$current_tab]); ?>" category.</p>
-                        <a href="../practice" class="btn btn-primary">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Practice Portal
-                        </a>
+                        <h3>No jobs in this category</h3>
+                        <p>You don't have any jobs in the "<?php echo htmlspecialchars($available_tabs[$active_tab]); ?>" category.</p>
                     </div>
                 <?php else: ?>
                     <div class="table-container">
@@ -205,16 +186,10 @@ try {
                             <thead>
                                 <tr>
                                     <th>Client</th>
+                                    <th>Client ID</th>
                                     <th>Task</th>
                                     <th>Description</th>
-                                    <th>Status</th>
-                                    <th>Budget Hours</th>
-                                    <th>Urgent</th>
                                     <th>Expected Completion</th>
-                                    <th>Deadline</th>
-                                    <th>Your Role</th>
-                                    <th>Partner</th>
-                                    <th>Manager</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -222,26 +197,12 @@ try {
                                     <tr>
                                         <td>
                                             <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars($job['client_reference']); ?></small>
+                                        </td>
+                                        <td>
+                                            <span class="client-id"><?php echo htmlspecialchars($job['client_reference'] ?? '-'); ?></span>
                                         </td>
                                         <td><?php echo htmlspecialchars($job['task_name']); ?></td>
                                         <td><?php echo htmlspecialchars($job['description'] ?? '-'); ?></td>
-                                        <td>
-                                            <span class="state-badge state-<?php echo strtolower(str_replace(' ', '-', $job['state_name'])); ?>">
-                                                <?php echo htmlspecialchars($job['state_name']); ?>
-                                            </span>
-                                        </td>
-                                        <td><?php echo $job['budget_hours'] ? $job['budget_hours'] . 'h' : '-'; ?></td>
-                                        <td>
-                                            <?php if ($job['urgent']): ?>
-                                                <span class="urgent-badge">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    Urgent
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="no-data">-</span>
-                                            <?php endif; ?>
-                                        </td>
                                         <td>
                                             <?php if ($job['expected_completion_date']): ?>
                                                 <?php 
@@ -261,36 +222,6 @@ try {
                                                 <span class="no-data">-</span>
                                             <?php endif; ?>
                                         </td>
-                                        <td>
-                                            <?php if ($job['deadline_date']): ?>
-                                                <?php 
-                                                $deadline = strtotime($job['deadline_date']);
-                                                $today = time();
-                                                $days_left = ceil(($deadline - $today) / (60 * 60 * 24));
-                                                
-                                                if ($days_left < 0) {
-                                                    echo '<span class="overdue">' . date('M j, Y', $deadline) . '</span>';
-                                                } elseif ($days_left <= 3) {
-                                                    echo '<span class="due-soon">' . date('M j, Y', $deadline) . '</span>';
-                                                } else {
-                                                    echo date('M j, Y', $deadline);
-                                                }
-                                                ?>
-                                            <?php else: ?>
-                                                <span class="no-data">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php 
-                                            $roles = [];
-                                            if ($job['preparer_id'] == $user_id) $roles[] = 'Preparer';
-                                            if ($job['manager_id'] == $user_id) $roles[] = 'Manager';
-                                            if ($job['partner_id'] == $user_id) $roles[] = 'Partner';
-                                            echo implode(', ', $roles);
-                                            ?>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($job['partner_name'] ?? '-'); ?></td>
-                                        <td><?php echo htmlspecialchars($job['manager_name'] ?? '-'); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -308,84 +239,57 @@ try {
     </footer>
 
     <style>
-        .tab-navigation {
-            display: flex;
+        .client-id {
             background: #f8f9fa;
-            border-radius: 8px;
-            padding: 4px;
-            margin-bottom: 2rem;
-            overflow-x: auto;
-        }
-
-        .tab-link {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #6c757d;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            white-space: nowrap;
-        }
-
-        .tab-link:hover {
-            background: #e9ecef;
             color: #495057;
-        }
-
-        .tab-link.active {
-            background: #007bff;
-            color: white;
-        }
-
-        .tab-count {
-            background: rgba(255, 255, 255, 0.2);
-            color: inherit;
-            padding: 2px 8px;
-            border-radius: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
             font-size: 12px;
-            font-weight: 600;
         }
-
-        .tab-link.active .tab-count {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
+        
         .page-subtitle {
             color: #6c757d;
-            margin: 0;
-            font-size: 1.1rem;
-        }
-
-        .state-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
+            margin-top: 8px;
+            font-size: 16px;
         }
         
-        .state-outstanding { background: #fff3cd; color: #856404; }
-        .state-received { background: #d1ecf1; color: #0c5460; }
-        .state-prepare { background: #d4edda; color: #155724; }
-        .state-returned { background: #f8d7da; color: #721c24; }
-        .state-review { background: #e2e3e5; color: #383d41; }
-        .state-with-client { background: #cce5ff; color: #004085; }
-        .state-paid-not-approved { background: #fff3cd; color: #856404; }
-        .state-approved-not-paid { background: #d1ecf1; color: #0c5460; }
-        .state-submit { background: #d4edda; color: #155724; }
-        .state-completed { background: #d4edda; color: #155724; }
-        .state-other { background: #e2e3e5; color: #383d41; }
+        .tabs-container {
+            margin: 20px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
         
-        .urgent-badge {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: -1px;
+        }
+        
+        .tab {
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #6c757d;
+            border: 1px solid transparent;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
             font-weight: 500;
+            border-radius: 4px 4px 0 0;
+            margin-right: 2px;
+        }
+        
+        .tab:hover {
+            color: #495057;
+            background: #e9ecef;
+            text-decoration: none;
+        }
+        
+        .tab.active {
+            color: #007bff;
+            background: white;
+            border-color: #e9ecef;
+            border-bottom-color: white;
+            font-weight: 600;
         }
         
         .overdue {
@@ -398,26 +302,20 @@ try {
             font-weight: bold;
         }
         
-        .text-muted {
-            color: #6c757d;
-            font-size: 12px;
-        }
-
         .no-data {
             color: #6c757d;
             font-style: italic;
         }
-
+        
         @media (max-width: 768px) {
-            .tab-navigation {
-                flex-wrap: nowrap;
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
+            .tabs {
+                flex-wrap: wrap;
             }
             
-            .tab-link {
-                padding: 10px 16px;
-                font-size: 14px;
+            .tab {
+                flex: 1;
+                text-align: center;
+                min-width: 80px;
             }
         }
     </style>
