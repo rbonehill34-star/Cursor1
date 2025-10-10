@@ -69,3 +69,4 @@ CREATE INDEX IF NOT EXISTS idx_state_name ON state(state_name);
 SELECT 'Jobs database setup completed successfully!' as Status;
 
 
+

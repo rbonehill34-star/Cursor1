@@ -186,23 +186,17 @@ if ($account_type === 'Basic') {
                             <thead>
                                 <tr>
                                     <th>Client</th>
-                                    <th>Client ID</th>
                                     <th>Task</th>
-                                    <th>Description</th>
-                                    <th>Expected Completion</th>
+                                    <th>Completion</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($jobs as $job): ?>
-                                    <tr>
+                                    <tr class="job-row" onclick="window.location.href='../jobs/add.php?id=<?php echo $job['id']; ?>'">
                                         <td>
                                             <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
                                         </td>
-                                        <td>
-                                            <span class="client-id"><?php echo htmlspecialchars($job['client_reference'] ?? '-'); ?></span>
-                                        </td>
                                         <td><?php echo htmlspecialchars($job['task_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($job['description'] ?? '-'); ?></td>
                                         <td>
                                             <?php if ($job['expected_completion_date']): ?>
                                                 <?php 
@@ -211,11 +205,11 @@ if ($account_type === 'Basic') {
                                                 $days_left = ceil(($completion_date - $today) / (60 * 60 * 24));
                                                 
                                                 if ($days_left < 0) {
-                                                    echo '<span class="overdue">' . date('M j, Y', $completion_date) . '</span>';
+                                                    echo '<span class="overdue">' . date('d/m/y', $completion_date) . '</span>';
                                                 } elseif ($days_left <= 3) {
-                                                    echo '<span class="due-soon">' . date('M j, Y', $completion_date) . '</span>';
+                                                    echo '<span class="due-soon">' . date('d/m/y', $completion_date) . '</span>';
                                                 } else {
-                                                    echo date('M j, Y', $completion_date);
+                                                    echo date('d/m/y', $completion_date);
                                                 }
                                                 ?>
                                             <?php else: ?>
@@ -290,6 +284,15 @@ if ($account_type === 'Basic') {
             border-color: #e9ecef;
             border-bottom-color: white;
             font-weight: 600;
+        }
+        
+        .job-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .job-row:hover {
+            background-color: #f8f9fa;
         }
         
         .overdue {

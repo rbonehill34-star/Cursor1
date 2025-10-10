@@ -2,20 +2,58 @@
 session_start();
 require_once '../config/database.php';
 
-// Check if user is logged in and has appropriate access
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../login');
     exit;
 }
 
+$user_id = $_SESSION['user_id'];
 $account_type = $_SESSION['account_type'] ?? 'Basic';
-if (!in_array($account_type, ['Manager', 'Administrator'])) {
-    header('Location: ../practice');
-    exit;
-}
 
 $message = '';
 $messageType = '';
+$isEdit = false;
+$job_id = null;
+
+// Check if we're editing an existing job
+if (isset($_GET['id']) && !empty($_GET['id'])) {
+    $job_id = (int)$_GET['id'];
+    $isEdit = true;
+    
+    // Fetch the existing job
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM jobs WHERE id = ?");
+        $stmt->execute([$job_id]);
+        $existingJob = $stmt->fetch();
+        
+        if (!$existingJob) {
+            $message = 'Job not found.';
+            $messageType = 'error';
+            $isEdit = false;
+        } else {
+            // Check if user has access to this job (only for Basic users)
+            if ($account_type === 'Basic') {
+                if ($existingJob['partner_id'] != $user_id && 
+                    $existingJob['manager_id'] != $user_id && 
+                    $existingJob['preparer_id'] != $user_id) {
+                    header('Location: ../practice');
+                    exit;
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        $message = 'Failed to load job data.';
+        $messageType = 'error';
+        $isEdit = false;
+    }
+} else {
+    // Creating new job - check permissions
+    if (!in_array($account_type, ['Manager', 'Administrator'])) {
+        header('Location: ../practice');
+        exit;
+    }
+}
 
 // Initialize form data
 $formData = [
@@ -36,6 +74,27 @@ $formData = [
     'comments' => ''
 ];
 
+// Populate form data if editing
+if ($isEdit && isset($existingJob)) {
+    $formData = [
+        'client_id' => $existingJob['client_id'],
+        'client_reference' => $existingJob['client_reference'] ?? '',
+        'task_id' => $existingJob['task_id'],
+        'description' => $existingJob['description'] ?? '',
+        'budget_hours' => $existingJob['budget_hours'] ?? '',
+        'state_id' => $existingJob['state_id'],
+        'urgent' => (bool)$existingJob['urgent'],
+        'partner_id' => $existingJob['partner_id'] ?? '',
+        'manager_id' => $existingJob['manager_id'] ?? '',
+        'preparer_id' => $existingJob['preparer_id'] ?? '',
+        'deadline_date' => $existingJob['deadline_date'] ?? '',
+        'expected_completion_date' => $existingJob['expected_completion_date'] ?? '',
+        'received_date' => $existingJob['received_date'] ?? '',
+        'assigned_date' => $existingJob['assigned_date'] ?? '',
+        'comments' => $existingJob['comments'] ?? ''
+    ];
+}
+
 if ($_POST) {
     // Get form data
     $formData['client_id'] = $_POST['client_id'] ?? '';
@@ -54,49 +113,90 @@ if ($_POST) {
     $formData['assigned_date'] = $_POST['assigned_date'] ?? '';
     $formData['comments'] = trim($_POST['comments'] ?? '');
     
+    // Get job_id from POST for editing
+    $post_job_id = isset($_POST['job_id']) ? (int)$_POST['job_id'] : null;
+    
     // Validation
     if (empty($formData['client_id']) || empty($formData['task_id']) || empty($formData['state_id'])) {
         $message = 'Client, Task, and State are required fields.';
         $messageType = 'error';
     } else {
         try {
-            // Insert new job
-            $stmt = $pdo->prepare("
-                INSERT INTO jobs (
-                    client_id, client_reference, task_id, description, budget_hours, 
-                    state_id, urgent, partner_id, manager_id, preparer_id, 
-                    deadline_date, expected_completion_date, received_date, 
-                    assigned_date, comments, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ");
-            
-            $stmt->execute([
-                $formData['client_id'],
-                $formData['client_reference'] ?: null,
-                $formData['task_id'],
-                $formData['description'] ?: null,
-                $formData['budget_hours'] ?: null,
-                $formData['state_id'],
-                $formData['urgent'] ? 1 : 0,
-                $formData['partner_id'] ?: null,
-                $formData['manager_id'] ?: null,
-                $formData['preparer_id'] ?: null,
-                $formData['deadline_date'] ?: null,
-                $formData['expected_completion_date'] ?: null,
-                $formData['received_date'] ?: null,
-                $formData['assigned_date'] ?: null,
-                $formData['comments'] ?: null
-            ]);
-            
-            $message = 'Job created successfully!';
-            $messageType = 'success';
-            
-            // Clear form data
-            $formData = array_fill_keys(array_keys($formData), '');
-            $formData['urgent'] = false;
+            if ($post_job_id) {
+                // Update existing job
+                $stmt = $pdo->prepare("
+                    UPDATE jobs SET
+                        client_id = ?, client_reference = ?, task_id = ?, description = ?, 
+                        budget_hours = ?, state_id = ?, urgent = ?, partner_id = ?, 
+                        manager_id = ?, preparer_id = ?, deadline_date = ?, 
+                        expected_completion_date = ?, received_date = ?, assigned_date = ?, 
+                        comments = ?
+                    WHERE id = ?
+                ");
+                
+                $stmt->execute([
+                    $formData['client_id'],
+                    $formData['client_reference'] ?: null,
+                    $formData['task_id'],
+                    $formData['description'] ?: null,
+                    $formData['budget_hours'] ?: null,
+                    $formData['state_id'],
+                    $formData['urgent'] ? 1 : 0,
+                    $formData['partner_id'] ?: null,
+                    $formData['manager_id'] ?: null,
+                    $formData['preparer_id'] ?: null,
+                    $formData['deadline_date'] ?: null,
+                    $formData['expected_completion_date'] ?: null,
+                    $formData['received_date'] ?: null,
+                    $formData['assigned_date'] ?: null,
+                    $formData['comments'] ?: null,
+                    $post_job_id
+                ]);
+                
+                $message = 'Job updated successfully!';
+                $messageType = 'success';
+                $isEdit = true;
+                $job_id = $post_job_id;
+                
+            } else {
+                // Insert new job
+                $stmt = $pdo->prepare("
+                    INSERT INTO jobs (
+                        client_id, client_reference, task_id, description, budget_hours, 
+                        state_id, urgent, partner_id, manager_id, preparer_id, 
+                        deadline_date, expected_completion_date, received_date, 
+                        assigned_date, comments, created_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                ");
+                
+                $stmt->execute([
+                    $formData['client_id'],
+                    $formData['client_reference'] ?: null,
+                    $formData['task_id'],
+                    $formData['description'] ?: null,
+                    $formData['budget_hours'] ?: null,
+                    $formData['state_id'],
+                    $formData['urgent'] ? 1 : 0,
+                    $formData['partner_id'] ?: null,
+                    $formData['manager_id'] ?: null,
+                    $formData['preparer_id'] ?: null,
+                    $formData['deadline_date'] ?: null,
+                    $formData['expected_completion_date'] ?: null,
+                    $formData['received_date'] ?: null,
+                    $formData['assigned_date'] ?: null,
+                    $formData['comments'] ?: null
+                ]);
+                
+                $message = 'Job created successfully!';
+                $messageType = 'success';
+                
+                // Clear form data
+                $formData = array_fill_keys(array_keys($formData), '');
+                $formData['urgent'] = false;
+            }
             
         } catch (PDOException $e) {
-            $message = 'Failed to create job. Please try again.';
+            $message = $post_job_id ? 'Failed to update job. Please try again.' : 'Failed to create job. Please try again.';
             $messageType = 'error';
         }
     }
@@ -131,7 +231,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>New Job - Cursor1</title>
+    <title><?php echo $isEdit ? 'Edit Job' : 'New Job'; ?> - Cursor1</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -140,8 +240,8 @@ try {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-plus"></i>
-                <span>New Job</span>
+                <i class="fas fa-<?php echo $isEdit ? 'edit' : 'plus'; ?>"></i>
+                <span><?php echo $isEdit ? 'Edit Job' : 'New Job'; ?></span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -164,12 +264,19 @@ try {
         <div class="admin-section">
             <div class="container">
                 <div class="page-header">
-                    <h1 class="page-title">Create New Job</h1>
+                    <h1 class="page-title"><?php echo $isEdit ? 'Edit Job' : 'Create New Job'; ?></h1>
                     <div class="page-actions">
-                        <a href="index" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Jobs
-                        </a>
+                        <?php if ($account_type !== 'Basic'): ?>
+                            <a href="index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Jobs
+                            </a>
+                        <?php else: ?>
+                            <a href="../myjobs" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to My Jobs
+                            </a>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -182,6 +289,9 @@ try {
 
                 <div class="form-section">
                     <form method="POST" action="" id="jobForm">
+                        <?php if ($isEdit): ?>
+                            <input type="hidden" name="job_id" value="<?php echo $job_id; ?>">
+                        <?php endif; ?>
                         <div class="form-layout">
                             <!-- Client Selection -->
                             <div class="form-group">
@@ -380,12 +490,19 @@ try {
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i>
-                                Create Job
+                                <?php echo $isEdit ? 'Save changes' : 'Create Job'; ?>
                             </button>
-                            <a href="index" class="btn btn-secondary">
-                                <i class="fas fa-times"></i>
-                                Cancel
-                            </a>
+                            <?php if ($account_type !== 'Basic'): ?>
+                                <a href="index" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </a>
+                            <?php else: ?>
+                                <a href="../myjobs" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i>
+                                    Cancel
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </form>
                 </div>
@@ -454,5 +571,6 @@ try {
     </style>
 </body>
 </html>
+
 
 
