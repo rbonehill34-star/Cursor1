@@ -243,7 +243,8 @@ if ($account_type === 'Basic') {
                 
                 row.addEventListener('click', function(e) {
                     if (jobId && jobId !== '0') {
-                        window.location.href = '/Projects/Cursor1/jobs/add.php?id=' + jobId;
+                        // Use relative path that works on both localhost and cPanel
+                        window.location.href = '../jobs/add.php?id=' + jobId;
                     }
                 });
             });
