@@ -3,11 +3,11 @@ RewriteEngine On
 # Remove .php extension from URLs
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^([^\.]+)$ $1.php [NC,L]
+RewriteRule ^([^\.]+)$ $1.php [NC,L,QSA]
 
-# Redirect .php URLs to clean URLs
-RewriteCond %{THE_REQUEST} /([^.]+)\.php [NC]
-RewriteRule ^ /%1? [NC,L,R=301]
+# Redirect .php URLs to clean URLs (DISABLED - was stripping query strings)
+# RewriteCond %{THE_REQUEST} /([^.]+)\.php [NC]
+# RewriteRule ^ /%1 [NC,L,R=301,QSA]
 
 # Security headers (only if mod_headers is available)
 <IfModule mod_headers.c>

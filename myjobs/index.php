@@ -192,7 +192,8 @@ if ($account_type === 'Basic') {
                             </thead>
                             <tbody>
                                 <?php foreach ($jobs as $job): ?>
-                                    <tr class="job-row" onclick="window.location.href='../jobs/add.php?id=<?php echo $job['id']; ?>'">
+                                    <?php $jobId = isset($job['id']) ? $job['id'] : 0; ?>
+                                    <tr class="job-row" data-job-id="<?php echo $jobId; ?>" style="cursor: pointer;">
                                         <td>
                                             <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
                                         </td>
@@ -231,6 +232,23 @@ if ($account_type === 'Basic') {
             <p>&copy; 2024 Cursor1. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Add click handlers to job rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobRows = document.querySelectorAll('.job-row');
+            
+            jobRows.forEach(function(row) {
+                const jobId = row.getAttribute('data-job-id');
+                
+                row.addEventListener('click', function(e) {
+                    if (jobId && jobId !== '0') {
+                        window.location.href = '/Projects/Cursor1/jobs/add.php?id=' + jobId;
+                    }
+                });
+            });
+        });
+    </script>
 
     <style>
         .client-id {
