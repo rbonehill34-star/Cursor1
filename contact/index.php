@@ -50,7 +50,7 @@ if ($_POST) {
         <div class="nav-container">
             <div class="nav-logo">
                 <img src="../assets/images/RJA-icon Blue.png" alt="RJ Accountancy Logo" style="height: 30px; margin-right: 10px;">
-                <span>RJ Accountancy</span>
+                <span>RJ Accountancy Limited</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
