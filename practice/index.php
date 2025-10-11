@@ -92,7 +92,6 @@ try {
                     <p class="practice-subtitle">Welcome back, <?php echo htmlspecialchars($username); ?>! (<?php echo $account_type; ?>)</p>
                 </div>
 
-
                 <div class="portal-grid">
                     <!-- 1. Timesheet - Available to all users -->
                     <div class="portal-card">
@@ -176,6 +175,7 @@ try {
                     </div>
                     <?php endif; ?>
                 </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
