@@ -45,7 +45,7 @@ require_once '../config/database.php';
             <div class="container">
                 <div class="contact-header">
                     <h1 class="contact-title">About RJ Accountancy Limited</h1>
-                    <p class="contact-subtitle">Your trusted chartered accountants providing professional services with transparent pricing</p>
+                    <p class="contact-subtitle">Woodhall Spa and beyond...</p>
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 3fr; gap: 30px; margin: 30px 0; align-items: start;">
