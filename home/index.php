@@ -27,9 +27,6 @@ require_once '../config/database.php';
                     <a href="../about" class="nav-link">About Us</a>
                 </li>
                 <li class="nav-item">
-                    <a href="../services" class="nav-link">Services</a>
-                </li>
-                <li class="nav-item">
                     <a href="../fees" class="nav-link">Fees</a>
                 </li>
                 <li class="nav-item">

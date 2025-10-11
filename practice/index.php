@@ -88,7 +88,7 @@ try {
         <div class="practice-section">
             <div class="container">
                 <div class="practice-header">
-                    <h1 class="practice-title">Practice Portal Test</h1>
+                    <h1 class="practice-title">Practice Portal</h1>
                     <p class="practice-subtitle">Welcome back, <?php echo htmlspecialchars($username); ?>! (<?php echo $account_type; ?>)</p>
                 </div>
 
