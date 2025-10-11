@@ -1754,13 +1754,13 @@ select.form-input {
     }
     
     /* Practice Portal Mobile */
-    .stats-grid {
+    .practice-section .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
         margin-top: 30px;
     }
     
-    .portal-grid {
+    .practice-section .portal-grid {
         grid-template-columns: 1fr;
         gap: 20px;
     }
@@ -1900,7 +1900,7 @@ select.form-input {
         font-size: 1rem;
     }
     
-    .stats-grid {
+    .practice-section .stats-grid {
         grid-template-columns: 1fr;
         gap: 15px;
         margin-top: 30px;
