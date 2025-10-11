@@ -88,52 +88,10 @@ try {
         <div class="practice-section">
             <div class="container">
                 <div class="practice-header">
-                    <h1 class="practice-title">Practice Portal</h1>
+                    <h1 class="practice-title">Practice Portal Test</h1>
                     <p class="practice-subtitle">Welcome back, <?php echo htmlspecialchars($username); ?>! (<?php echo $account_type; ?>)</p>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['timesheet_entries']; ?></h3>
-                            <p>Total Timesheet Entries</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar-week"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['this_week_entries']; ?></h3>
-                            <p>This Week's Entries</p>
-                        </div>
-                    </div>
-                    <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['total_clients'] ?? 0; ?></h3>
-                            <p>Total Clients</p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($account_type === 'Administrator'): ?>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['form_responses'] ?? 0; ?></h3>
-                            <p>Form Responses</p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                </div>
 
                 <div class="portal-grid">
                     <!-- 1. Timesheet - Available to all users -->
@@ -218,6 +176,49 @@ try {
                     </div>
                     <?php endif; ?>
                 </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3><?php echo $stats['timesheet_entries']; ?></h3>
+                            <p>Total Timesheet Entries</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3><?php echo $stats['this_week_entries']; ?></h3>
+                            <p>This Week's Entries</p>
+                        </div>
+                    </div>
+                    <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3><?php echo $stats['total_clients'] ?? 0; ?></h3>
+                            <p>Total Clients</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    <?php if ($account_type === 'Administrator'): ?>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3><?php echo $stats['form_responses'] ?? 0; ?></h3>
+                            <p>Form Responses</p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+
             </div>
         </div>
     </main>
