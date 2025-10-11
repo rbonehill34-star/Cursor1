@@ -1757,6 +1757,7 @@ select.form-input {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 20px;
+        margin-top: 30px;
     }
     
     .portal-grid {
@@ -1766,11 +1767,6 @@ select.form-input {
     
     .portal-card {
         padding: 30px 20px;
-        margin: 10px 0;
-    }
-    
-    .stat-card {
-        margin: 10px 0;
     }
     
     /* Page Headers Mobile */
@@ -1907,6 +1903,7 @@ select.form-input {
     .stats-grid {
         grid-template-columns: 1fr;
         gap: 15px;
+        margin-top: 30px;
     }
     
     .stat-card {
@@ -1914,7 +1911,6 @@ select.form-input {
         flex-direction: column;
         text-align: center;
         gap: 15px;
-        margin: 10px 0;
     }
     
     .stat-icon {
@@ -1927,7 +1923,6 @@ select.form-input {
     
     .portal-card {
         padding: 25px 15px;
-        margin: 10px 0;
     }
     
     .portal-icon {
