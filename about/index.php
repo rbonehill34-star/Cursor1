@@ -48,8 +48,8 @@ require_once '../config/database.php';
                     <p class="contact-subtitle">Woodhall Spa and beyond...</p>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 30px; margin: 30px 0; align-items: start;">
-                    <!-- Content box on the left (3/4 width) -->
+                <div class="about-layout">
+                    <!-- Content box on the left (3/4 width) on desktop, top on mobile -->
                     <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
                         <h3 style="color: #333; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #667eea;">About Us</h3>
                         <div style="text-align: left; line-height: 1.8; color: #555;">
@@ -81,7 +81,7 @@ require_once '../config/database.php';
                         </div>
                     </div>
                     
-                    <!-- Picture on the right -->
+                    <!-- Picture on the right on desktop, below on mobile -->
                     <div style="display: flex; justify-content: center; align-items: center;">
                         <img src="../assets/images/Woodhall-Spa-sign.jpg" alt="Woodhall Spa Sign" style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
                     </div>
