@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once '../config/database.php';
 
 $message = '';
@@ -44,6 +45,12 @@ if ($_POST) {
                 $message = 'Account created successfully! You can now login.';
                 $messageType = 'success';
                 
+                // If admin is creating user, redirect to users page after a short delay
+                if (isset($_SESSION['user_id']) && ($_SESSION['account_type'] ?? '') === 'Administrator') {
+                    $message = 'User created successfully!';
+                    echo '<script>setTimeout(function(){ window.location.href = "../users"; }, 1500);</script>';
+                }
+                
                 // Clear form data
                 $username = $password = $confirm_password = $account_type = '';
             }
@@ -69,19 +76,31 @@ if ($_POST) {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-database"></i>
-                <span>Cursor1</span>
+                <i class="fas fa-user-plus"></i>
+                <span>Create New User</span>
             </div>
             <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="../home" class="nav-link">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a href="../contact" class="nav-link">Contact</a>
-                </li>
-                <li class="nav-item">
-                    <a href="../login" class="nav-link">Login</a>
-                </li>
+                <?php if (isset($_SESSION['user_id']) && ($_SESSION['account_type'] ?? '') === 'Administrator'): ?>
+                    <li class="nav-item">
+                        <a href="../users" class="nav-link">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../practice" class="nav-link">Practice Portal</a>
+                    </li>
+                <?php else: ?>
+                    <li class="nav-item">
+                        <a href="../home" class="nav-link">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../contact" class="nav-link">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="../login" class="nav-link">Login</a>
+                    </li>
+                <?php endif; ?>
             </ul>
         </div>
     </nav>
@@ -153,13 +172,22 @@ if ($_POST) {
                         </button>
                     </form>
 
-                    <div class="register-footer">
-                        <p>Already have an account?</p>
-                        <a href="../login" class="btn btn-secondary">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Sign In
-                        </a>
-                    </div>
+                    <?php if (isset($_SESSION['user_id']) && ($_SESSION['account_type'] ?? '') === 'Administrator'): ?>
+                        <div class="register-footer">
+                            <a href="../users" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to User Management
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <div class="register-footer">
+                            <p>Already have an account?</p>
+                            <a href="../login" class="btn btn-secondary">
+                                <i class="fas fa-sign-in-alt"></i>
+                                Sign In
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

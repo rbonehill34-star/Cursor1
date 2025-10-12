@@ -175,6 +175,19 @@ try {
                             View Responses
                         </a>
                     </div>
+
+                    <!-- 7. Users - Administrator only -->
+                    <div class="portal-card">
+                        <div class="portal-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>Users</h3>
+                        <p>Manage system users and accounts</p>
+                        <a href="../users" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Manage Users
+                        </a>
+                    </div>
                     <?php endif; ?>
                 </div>
 

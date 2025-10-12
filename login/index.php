@@ -111,14 +111,6 @@ if ($_POST) {
                             Sign In
                         </button>
                     </form>
-
-                    <div class="login-footer">
-                        <p>Don't have an account?</p>
-                        <a href="../register" class="btn btn-success">
-                            <i class="fas fa-user-plus"></i>
-                            Set Up New Account
-                        </a>
-                    </div>
                 </div>
             </div>
         </div>
