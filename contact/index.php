@@ -104,7 +104,7 @@ if ($_POST) {
                                 <i class="fas fa-clock"></i>
                             </div>
                             <h3>Business Hours</h3>
-                            <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
+                            <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
                         </div>
                     </div>
 

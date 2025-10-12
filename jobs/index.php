@@ -17,6 +17,9 @@ if (!in_array($account_type, ['Manager', 'Administrator'])) {
 $message = '';
 $messageType = '';
 
+// Get the active tab from URL parameter, default to 'all'
+$active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'all';
+
 // Handle delete action
 if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
     try {
@@ -43,33 +46,57 @@ if (isset($_GET['archive']) && is_numeric($_GET['archive'])) {
     }
 }
 
-// Get all non-archived jobs with related data
-try {
-    $stmt = $pdo->query("
+// Function to get jobs based on tab
+function getJobsByTab($pdo, $tab) {
+    $base_query = "
         SELECT j.*, 
                c.name as client_name, 
                c.reference as client_reference,
                t.task_name,
-               s.state_name,
-               p.username as partner_name,
-               m.username as manager_name,
-               pr.username as preparer_name
+               s.state_name
         FROM jobs j
         LEFT JOIN clients c ON j.client_id = c.id
         LEFT JOIN tasks t ON j.task_id = t.id
         LEFT JOIN state s ON j.state_id = s.id
-        LEFT JOIN login p ON j.partner_id = p.id
-        LEFT JOIN login m ON j.manager_id = m.id
-        LEFT JOIN login pr ON j.preparer_id = pr.id
         WHERE s.state_name != 'Archived'
-        ORDER BY j.created_at DESC
-    ");
-    $jobs = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $jobs = [];
-    $message = 'Failed to load jobs.';
-    $messageType = 'error';
+    ";
+    
+    // Add state filter based on tab
+    switch ($tab) {
+        case 'all':
+            // Exclude completed and archived jobs
+            $base_query .= " AND s.state_name != 'Completed'";
+            break;
+        case 'received':
+            $base_query .= " AND s.state_name = 'Received'";
+            break;
+        case 'outstanding':
+            $base_query .= " AND s.state_name = 'Outstanding'";
+            break;
+        default:
+            return [];
+    }
+    
+    // Sort by completion date, latest first
+    $base_query .= " ORDER BY j.expected_completion_date DESC, j.created_at DESC";
+    
+    try {
+        $stmt = $pdo->query($base_query);
+        return $stmt->fetchAll();
+    } catch (PDOException $e) {
+        return [];
+    }
 }
+
+// Get jobs for the active tab
+$jobs = getJobsByTab($pdo, $active_tab);
+
+// Define available tabs
+$available_tabs = [
+    'all' => 'All Jobs',
+    'received' => 'Received',
+    'outstanding' => 'Outstanding'
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -123,13 +150,25 @@ try {
                     </div>
                 <?php endif; ?>
 
+                <!-- Tab Navigation -->
+                <div class="tabs-container">
+                    <div class="tabs">
+                        <?php foreach ($available_tabs as $tab_key => $tab_label): ?>
+                            <a href="?tab=<?php echo $tab_key; ?>" 
+                               class="tab <?php echo $active_tab === $tab_key ? 'active' : ''; ?>">
+                                <?php echo htmlspecialchars($tab_label); ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
                 <?php if (empty($jobs)): ?>
                     <div class="empty-state">
                         <div class="empty-icon">
                             <i class="fas fa-briefcase"></i>
                         </div>
-                        <h3>No jobs yet</h3>
-                        <p>Get started by creating your first job.</p>
+                        <h3>No jobs in this category</h3>
+                        <p>You don't have any jobs in the "<?php echo htmlspecialchars($available_tabs[$active_tab]); ?>" category.</p>
                         <a href="add" class="btn btn-primary">
                             <i class="fas fa-plus"></i>
                             Create First Job
@@ -142,78 +181,35 @@ try {
                                 <tr>
                                     <th>Client</th>
                                     <th>Task</th>
-                                    <th>Description</th>
-                                    <th>State</th>
-                                    <th>Budget Hours</th>
-                                    <th>Urgent</th>
-                                    <th>Deadline</th>
-                                    <th>Partner</th>
-                                    <th>Manager</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
+                                    <th>Completion</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($jobs as $job): ?>
-                                    <tr>
+                                    <?php $jobId = isset($job['id']) ? $job['id'] : 0; ?>
+                                    <tr class="job-row" data-job-id="<?php echo $jobId; ?>" style="cursor: pointer;">
                                         <td>
                                             <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
-                                            <br><small class="text-muted"><?php echo htmlspecialchars($job['client_reference']); ?></small>
                                         </td>
                                         <td><?php echo htmlspecialchars($job['task_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($job['description'] ?? '-'); ?></td>
                                         <td>
-                                            <span class="state-badge state-<?php echo strtolower(str_replace(' ', '-', $job['state_name'])); ?>">
-                                                <?php echo htmlspecialchars($job['state_name']); ?>
-                                            </span>
-                                        </td>
-                                        <td><?php echo $job['budget_hours'] ? $job['budget_hours'] . 'h' : '-'; ?></td>
-                                        <td>
-                                            <?php if ($job['urgent']): ?>
-                                                <span class="urgent-badge">
-                                                    <i class="fas fa-exclamation-triangle"></i>
-                                                    Urgent
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="no-data">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($job['deadline_date']): ?>
+                                            <?php if ($job['expected_completion_date']): ?>
                                                 <?php 
-                                                $deadline = strtotime($job['deadline_date']);
+                                                $completion_date = strtotime($job['expected_completion_date']);
                                                 $today = time();
-                                                $days_left = ceil(($deadline - $today) / (60 * 60 * 24));
+                                                $days_left = ceil(($completion_date - $today) / (60 * 60 * 24));
                                                 
                                                 if ($days_left < 0) {
-                                                    echo '<span class="overdue">' . date('M j, Y', $deadline) . '</span>';
+                                                    echo '<span class="overdue">' . date('d/m/y', $completion_date) . '</span>';
                                                 } elseif ($days_left <= 3) {
-                                                    echo '<span class="due-soon">' . date('M j, Y', $deadline) . '</span>';
+                                                    echo '<span class="due-soon">' . date('d/m/y', $completion_date) . '</span>';
                                                 } else {
-                                                    echo date('M j, Y', $deadline);
+                                                    echo date('d/m/y', $completion_date);
                                                 }
                                                 ?>
                                             <?php else: ?>
                                                 <span class="no-data">-</span>
                                             <?php endif; ?>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($job['partner_name'] ?? '-'); ?></td>
-                                        <td><?php echo htmlspecialchars($job['manager_name'] ?? '-'); ?></td>
-                                        <td><?php echo date('M j, Y', strtotime($job['created_at'])); ?></td>
-                                        <td>
-                                            <a href="edit?id=<?php echo $job['id']; ?>" class="btn btn-action btn-edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="?archive=<?php echo $job['id']; ?>" 
-                                               class="btn btn-action btn-archive"
-                                               onclick="return confirm('Are you sure you want to archive this job?')">
-                                                <i class="fas fa-archive"></i>
-                                            </a>
-                                            <a href="?delete=<?php echo $job['id']; ?>" 
-                                               class="btn btn-action btn-delete"
-                                               onclick="return confirm('Are you sure you want to delete this job?')">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -231,34 +227,69 @@ try {
         </div>
     </footer>
 
+    <script>
+        // Add click handlers to job rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const jobRows = document.querySelectorAll('.job-row');
+            
+            jobRows.forEach(function(row) {
+                const jobId = row.getAttribute('data-job-id');
+                
+                row.addEventListener('click', function(e) {
+                    if (jobId && jobId !== '0') {
+                        window.location.href = 'add.php?id=' + jobId;
+                    }
+                });
+            });
+        });
+    </script>
+
     <style>
-        .state-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
+        .tabs-container {
+            margin: 20px 0;
+            border-bottom: 1px solid #e9ecef;
         }
         
-        .state-outstanding { background: #fff3cd; color: #856404; }
-        .state-received { background: #d1ecf1; color: #0c5460; }
-        .state-prepare { background: #d4edda; color: #155724; }
-        .state-returned { background: #f8d7da; color: #721c24; }
-        .state-review { background: #e2e3e5; color: #383d41; }
-        .state-with-client { background: #cce5ff; color: #004085; }
-        .state-paid-not-approved { background: #fff3cd; color: #856404; }
-        .state-approved-not-paid { background: #d1ecf1; color: #0c5460; }
-        .state-submit { background: #d4edda; color: #155724; }
-        .state-completed { background: #d4edda; color: #155724; }
-        .state-other { background: #e2e3e5; color: #383d41; }
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: -1px;
+        }
         
-        .urgent-badge {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
+        .tab {
+            padding: 12px 20px;
+            text-decoration: none;
+            color: #6c757d;
+            border: 1px solid transparent;
+            border-bottom: 1px solid #e9ecef;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
             font-weight: 500;
+            border-radius: 4px 4px 0 0;
+            margin-right: 2px;
+        }
+        
+        .tab:hover {
+            color: #495057;
+            background: #e9ecef;
+            text-decoration: none;
+        }
+        
+        .tab.active {
+            color: #007bff;
+            background: white;
+            border-color: #e9ecef;
+            border-bottom-color: white;
+            font-weight: 600;
+        }
+        
+        .job-row {
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .job-row:hover {
+            background-color: #f8f9fa;
         }
         
         .overdue {
@@ -271,9 +302,21 @@ try {
             font-weight: bold;
         }
         
-        .text-muted {
+        .no-data {
             color: #6c757d;
-            font-size: 12px;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap;
+            }
+            
+            .tab {
+                flex: 1;
+                text-align: center;
+                min-width: 80px;
+            }
         }
     </style>
 </body>
