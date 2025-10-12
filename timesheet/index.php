@@ -201,16 +201,6 @@ for ($i = -12; $i <= 12; $i++) {
     <main class="main-content">
         <div class="admin-section">
             <div class="container">
-                <div class="page-header">
-                    <h1 class="page-title">Timesheet</h1>
-                    <div class="page-actions">
-                        <a href="../practice" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i>
-                            Back to Portal
-                        </a>
-                    </div>
-                </div>
-
                 <?php if ($message): ?>
                     <div class="alert alert-<?php echo $messageType; ?>">
                         <i class="fas fa-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-circle'; ?>"></i>
