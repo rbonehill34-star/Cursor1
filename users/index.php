@@ -25,7 +25,7 @@ if (isset($_GET['message']) && $_GET['message'] === 'deleted') {
 
 // Get all users
 try {
-    $stmt = $pdo->query("SELECT id, username, password, account_type, created_at FROM users ORDER BY created_at DESC");
+    $stmt = $pdo->query("SELECT id, username, password, account_type, created_at FROM users ORDER BY id ASC");
     $users = $stmt->fetchAll();
 } catch (PDOException $e) {
     $users = [];
