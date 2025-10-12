@@ -17,17 +17,10 @@ if (!in_array($account_type, ['Manager', 'Administrator'])) {
 $message = '';
 $messageType = '';
 
-// Handle delete action
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    try {
-        $stmt = $pdo->prepare("DELETE FROM clients WHERE id = ?");
-        $stmt->execute([$_GET['delete']]);
-        $message = 'Client deleted successfully.';
-        $messageType = 'success';
-    } catch (PDOException $e) {
-        $message = 'Failed to delete client.';
-        $messageType = 'error';
-    }
+// Handle delete success message from edit page
+if (isset($_GET['deleted'])) {
+    $message = 'Client deleted successfully.';
+    $messageType = 'success';
 }
 
 // Get all clients
@@ -105,56 +98,33 @@ try {
                         </a>
                     </div>
                 <?php else: ?>
+                    <div class="search-container" style="margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="clientSearch" class="form-label">
+                                <i class="fas fa-search"></i>
+                                Search Clients
+                            </label>
+                            <input type="text" id="clientSearch" class="form-input" 
+                                   placeholder="Type to search clients..." 
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
-                                    <th>Reference</th>
                                     <th>Name</th>
+                                    <th>Reference</th>
                                     <th>Contact</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Year End</th>
-                                    <th>Date Added</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="clientsTableBody">
                                 <?php foreach ($clients as $client): ?>
-                                    <tr>
-                                        <td><strong><?php echo htmlspecialchars($client['reference']); ?></strong></td>
+                                    <tr class="clickable-row" data-href="edit?id=<?php echo $client['id']; ?>" style="cursor: pointer;">
                                         <td><?php echo htmlspecialchars($client['name']); ?></td>
+                                        <td><strong><?php echo htmlspecialchars($client['reference']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($client['contact'] ?? '-'); ?></td>
-                                        <td>
-                                            <?php if ($client['email']): ?>
-                                                <a href="mailto:<?php echo htmlspecialchars($client['email']); ?>" class="email-link">
-                                                    <?php echo htmlspecialchars($client['email']); ?>
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="no-data">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <?php if ($client['phone']): ?>
-                                                <a href="tel:<?php echo htmlspecialchars($client['phone']); ?>" class="phone-link">
-                                                    <?php echo htmlspecialchars($client['phone']); ?>
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="no-data">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td><?php echo $client['year_end'] ? date('M j, Y', strtotime($client['year_end'])) : '-'; ?></td>
-                                        <td><?php echo date('M j, Y', strtotime($client['date_added'])); ?></td>
-                                        <td>
-                                            <a href="edit?id=<?php echo $client['id']; ?>" class="btn btn-action btn-edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a href="?delete=<?php echo $client['id']; ?>" 
-                                               class="btn btn-action btn-delete"
-                                               onclick="return confirm('Are you sure you want to delete this client?')">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                        </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -170,5 +140,36 @@ try {
             <p>&copy; 2024 Cursor1. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Make table rows clickable
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.addEventListener('click', function() {
+                window.location.href = this.dataset.href;
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('clientSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const tableBody = document.getElementById('clientsTableBody');
+                const rows = tableBody.getElementsByTagName('tr');
+
+                Array.from(rows).forEach(row => {
+                    const name = row.cells[0].textContent.toLowerCase();
+                    const reference = row.cells[1].textContent.toLowerCase();
+                    const contact = row.cells[2].textContent.toLowerCase();
+                    
+                    if (name.startsWith(searchTerm) || reference.startsWith(searchTerm) || contact.startsWith(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
 </body>
 </html>
