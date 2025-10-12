@@ -43,15 +43,11 @@ require_once '../config/database.php';
     <main class="main-content">
         <div class="hero-section">
             <div class="hero-content">
-                <div class="hero-icon">
-                    <img src="../assets/images/RJA-icon white.png" alt="RJ Accountancy Logo" style="height: 80px; opacity: 0.9;">
-                </div>
-                <h1 class="hero-title">RJ Accountancy Limited</h1>
-                <p class="hero-subtitle">Chartered Accountants</p>
+                <h1 class="hero-title">Chartered Accountants</h1>
+                <p class="hero-subtitle">With Fixed Fees and No Suprises</p>
                 <div class="hero-description">
-                    <p>Professional chartered accountancy services with transparent, fixed fee pricing. 
-                    We provide company accounts, self-assessment returns, VAT services, and expert tax planning 
-                    to help your business grow and thrive.</p>
+                    <p>RJ Accountancy offer fixed fee accountancy services. The cost of accountancy fees for Limited company accounts start at £300 for a low turnover company. For self assessment accountant fees we charge £179 for a basic return.
+                    </p>
                 </div>
                 <div class="hero-actions">
                     <a href="../contact" class="btn btn-primary">
