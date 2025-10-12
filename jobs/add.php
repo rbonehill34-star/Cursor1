@@ -16,6 +16,9 @@ $messageType = '';
 $isEdit = false;
 $job_id = null;
 
+// Check if user came from My Jobs list
+$fromMyJobs = isset($_GET['from']) && $_GET['from'] === 'myjobs';
+
 // Check if we're editing an existing job
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $job_id = (int)$_GET['id'];
@@ -249,7 +252,11 @@ try {
                     <a href="../practice" class="nav-link">Practice Portal</a>
                 </li>
                 <li class="nav-item">
-                    <a href="index" class="nav-link">Back to Jobs</a>
+                    <?php if ($fromMyJobs): ?>
+                        <a href="../myjobs" class="nav-link">Back to My Jobs</a>
+                    <?php else: ?>
+                        <a href="index" class="nav-link">Back to Jobs</a>
+                    <?php endif; ?>
                 </li>
                 <li class="nav-item">
                     <a href="../login?logout=1" class="nav-link">
@@ -267,15 +274,15 @@ try {
                 <div class="page-header">
                     <h1 class="page-title"><?php echo $isEdit ? 'Edit Job' : 'Create New Job'; ?></h1>
                     <div class="page-actions">
-                        <?php if ($account_type !== 'Basic'): ?>
-                            <a href="index" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i>
-                                Back to Jobs
-                            </a>
-                        <?php else: ?>
+                        <?php if ($fromMyJobs): ?>
                             <a href="../myjobs" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i>
                                 Back to My Jobs
+                            </a>
+                        <?php else: ?>
+                            <a href="index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Jobs
                             </a>
                         <?php endif; ?>
                     </div>
@@ -493,13 +500,13 @@ try {
                                 <i class="fas fa-save"></i>
                                 <?php echo $isEdit ? 'Save changes' : 'Create Job'; ?>
                             </button>
-                            <?php if ($account_type !== 'Basic'): ?>
-                                <a href="index" class="btn btn-secondary">
+                            <?php if ($fromMyJobs): ?>
+                                <a href="../myjobs" class="btn btn-secondary">
                                     <i class="fas fa-times"></i>
                                     Cancel
                                 </a>
                             <?php else: ?>
-                                <a href="../myjobs" class="btn btn-secondary">
+                                <a href="index" class="btn btn-secondary">
                                     <i class="fas fa-times"></i>
                                     Cancel
                                 </a>

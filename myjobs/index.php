@@ -245,7 +245,8 @@ if ($account_type === 'Basic') {
                 row.addEventListener('click', function(e) {
                     if (jobId && jobId !== '0') {
                         // Use relative path that works on both localhost and cPanel
-                        window.location.href = '../jobs/add.php?id=' + jobId;
+                        // Add from=myjobs parameter to track where user came from
+                        window.location.href = '../jobs/add.php?id=' + jobId + '&from=myjobs';
                     }
                 });
             });
