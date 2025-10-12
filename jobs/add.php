@@ -220,7 +220,7 @@ try {
     $states = $stmt->fetchAll();
     
     // Get users for partner, manager, preparer
-    $stmt = $pdo->query("SELECT id, username FROM login ORDER BY username ASC");
+    $stmt = $pdo->query("SELECT id, username FROM users ORDER BY username ASC");
     $users = $stmt->fetchAll();
     
 } catch (PDOException $e) {

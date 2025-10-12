@@ -12,7 +12,7 @@ if ($_POST) {
         $error = 'Please enter both username and password.';
     } else {
         try {
-            $stmt = $pdo->prepare("SELECT id, username, password, account_type FROM login WHERE username = ?");
+            $stmt = $pdo->prepare("SELECT id, username, password, account_type FROM users WHERE username = ?");
             $stmt->execute([$username]);
             $user = $stmt->fetch();
             

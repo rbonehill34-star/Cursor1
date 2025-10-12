@@ -37,9 +37,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
     FOREIGN KEY (state_id) REFERENCES state(id) ON DELETE CASCADE,
-    FOREIGN KEY (partner_id) REFERENCES login(id) ON DELETE SET NULL,
-    FOREIGN KEY (manager_id) REFERENCES login(id) ON DELETE SET NULL,
-    FOREIGN KEY (preparer_id) REFERENCES login(id) ON DELETE SET NULL
+    FOREIGN KEY (partner_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL,
+    FOREIGN KEY (preparer_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Insert job states

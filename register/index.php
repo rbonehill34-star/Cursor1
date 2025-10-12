@@ -29,7 +29,7 @@ if ($_POST) {
     } else {
         try {
             // Check if username already exists
-            $stmt = $pdo->prepare("SELECT id FROM login WHERE username = ?");
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
             $stmt->execute([$username]);
             
             if ($stmt->fetch()) {
@@ -38,7 +38,7 @@ if ($_POST) {
             } else {
                 // Create new user
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO login (username, password, account_type, created_at) VALUES (?, ?, ?, NOW())");
+                $stmt = $pdo->prepare("INSERT INTO users (username, password, account_type, created_at) VALUES (?, ?, ?, NOW())");
                 $stmt->execute([$username, $hashed_password, $account_type]);
                 
                 $message = 'Account created successfully! You can now login.';

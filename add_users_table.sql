@@ -19,3 +19,4 @@ CREATE INDEX IF NOT EXISTS idx_username ON users(username);
 -- Only insert if no users exist yet
 INSERT IGNORE INTO users (username, password) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+

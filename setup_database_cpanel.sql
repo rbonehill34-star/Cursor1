@@ -19,8 +19,8 @@ CREATE TABLE IF NOT EXISTS formresponse (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Create the login table
-CREATE TABLE IF NOT EXISTS login (
+-- Create the users table
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS timesheet (
     description VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES login(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS timesheet (
 -- Add indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_email ON formresponse(email);
 CREATE INDEX IF NOT EXISTS idx_created_at ON formresponse(created_at);
-CREATE INDEX IF NOT EXISTS idx_username ON login(username);
+CREATE INDEX IF NOT EXISTS idx_username ON users(username);
 
 -- Insert sample form data (optional)
 INSERT INTO formresponse (name, email, telephone, message) VALUES
@@ -80,7 +80,7 @@ INSERT INTO formresponse (name, email, telephone, message) VALUES
 ('Bob Johnson', 'bob@example.com', '+1-555-0789', 'Sample message from Bob for testing purposes.');
 
 -- Insert sample users (password: admin123)
-INSERT INTO login (username, password, account_type) VALUES
+INSERT INTO users (username, password, account_type) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator'),
 ('manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Manager'),
 ('basic', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Basic');

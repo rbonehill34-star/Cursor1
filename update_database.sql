@@ -3,8 +3,8 @@
 
 USE a1e750tdxgba_cursor1;
 
--- Add account_type column to existing login table
-ALTER TABLE login ADD COLUMN account_type ENUM('Administrator', 'Manager', 'Basic') NOT NULL DEFAULT 'Basic' AFTER password;
+-- Add account_type column to existing users table
+ALTER TABLE users ADD COLUMN account_type ENUM('Administrator', 'Manager', 'Basic') NOT NULL DEFAULT 'Basic' AFTER password;
 
 -- Create the clients table
 CREATE TABLE IF NOT EXISTS clients (
@@ -40,24 +40,24 @@ CREATE TABLE IF NOT EXISTS timesheet (
     description VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES login(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
 -- Add indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_username ON login(username);
-CREATE INDEX IF NOT EXISTS idx_account_type ON login(account_type);
+CREATE INDEX IF NOT EXISTS idx_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_account_type ON users(account_type);
 CREATE INDEX IF NOT EXISTS idx_client_reference ON clients(reference);
 CREATE INDEX IF NOT EXISTS idx_timesheet_user_date ON timesheet(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_timesheet_client ON timesheet(client_id);
 CREATE INDEX IF NOT EXISTS idx_timesheet_task ON timesheet(task_id);
 
 -- Update existing admin user to Administrator
-UPDATE login SET account_type = 'Administrator' WHERE username = 'admin';
+UPDATE users SET account_type = 'Administrator' WHERE username = 'admin';
 
 -- Insert sample users if they don't exist
-INSERT IGNORE INTO login (username, password, account_type) VALUES
+INSERT IGNORE INTO users (username, password, account_type) VALUES
 ('manager', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Manager'),
 ('basic', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Basic');
 

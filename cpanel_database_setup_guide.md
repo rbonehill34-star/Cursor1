@@ -57,8 +57,8 @@ CREATE TABLE IF NOT EXISTS formresponse (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Create the login table
-CREATE TABLE IF NOT EXISTS login (
+-- Create the users table
+CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS login (
 -- Add indexes
 CREATE INDEX IF NOT EXISTS idx_email ON formresponse(email);
 CREATE INDEX IF NOT EXISTS idx_created_at ON formresponse(created_at);
-CREATE INDEX IF NOT EXISTS idx_username ON login(username);
+CREATE INDEX IF NOT EXISTS idx_username ON users(username);
 
 -- Insert sample data
 INSERT INTO formresponse (name, email, telephone, message) VALUES
@@ -78,7 +78,7 @@ INSERT INTO formresponse (name, email, telephone, message) VALUES
 ('Bob Johnson', 'bob@example.com', '+1-555-0789', 'Sample message from Bob for testing purposes.');
 
 -- Insert admin user (password: admin123)
-INSERT INTO login (username, password) VALUES
+INSERT INTO users (username, password) VALUES
 ('admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
 ```
 
