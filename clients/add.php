@@ -33,6 +33,10 @@ if ($_POST) {
     $directors_sa = $_POST['directors_sa'] ?? 'N';
     $vat = $_POST['vat'] ?? 'N';
     $vat_periods = $_POST['vat_periods'] ?? null;
+    // Ensure vat_periods is null when VAT is N
+    if ($vat === 'N') {
+        $vat_periods = null;
+    }
     
     // Validation
     if (empty($reference) || empty($name)) {
@@ -341,6 +345,19 @@ if ($_POST) {
                 vatPeriodsGroup.style.display = 'block';
                 vatPeriodsSelect.required = true;
             } else {
+                vatPeriodsGroup.style.display = 'none';
+                vatPeriodsSelect.required = false;
+                vatPeriodsSelect.value = '';
+            }
+        });
+        
+        // Initialize VAT periods field state on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const vatSelect = document.getElementById('vat');
+            const vatPeriodsGroup = document.getElementById('vat_periods_group');
+            const vatPeriodsSelect = document.getElementById('vat_periods');
+            
+            if (vatSelect.value === 'N') {
                 vatPeriodsGroup.style.display = 'none';
                 vatPeriodsSelect.required = false;
                 vatPeriodsSelect.value = '';
