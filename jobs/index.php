@@ -51,6 +51,7 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
     $selected_jobs = $_POST['selected_jobs'];
     $reminder_count = 0;
     $errors = [];
+    $prepared_emails = [];
     
     foreach ($selected_jobs as $job_id) {
         try {
@@ -69,9 +70,13 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 $subject = "Information needed for Accounts for the year ended " . date('d/m/Y', strtotime($job['deadline_date']));
                 $body = "Dear " . $job['client_contact'] . "\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob";
                 
-                // For now, we'll just log the email (in a real implementation, you'd send it)
-                // You can integrate with PHPMailer, mail() function, or your preferred email service
-                error_log("REMINDER EMAIL - To: " . $job['client_email'] . " | Subject: " . $subject . " | Body: " . $body);
+                // Store email details for display
+                $prepared_emails[] = [
+                    'client_name' => $job['client_name'],
+                    'client_email' => $job['client_email'],
+                    'subject' => $subject,
+                    'body' => $body
+                ];
                 
                 $reminder_count++;
             } else {
@@ -83,7 +88,11 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
     }
     
     if ($reminder_count > 0) {
-        $message = $reminder_count . " reminder(s) prepared successfully.";
+        // Store prepared emails in session for display
+        $_SESSION['prepared_emails'] = $prepared_emails;
+        $_SESSION['reminder_errors'] = $errors;
+        
+        $message = $reminder_count . " reminder(s) prepared successfully. Click 'View Emails' to see the content.";
         if (!empty($errors)) {
             $message .= " Errors: " . implode(', ', $errors);
         }
@@ -240,14 +249,53 @@ $available_tabs = [
                     <?php if ($active_tab === 'outstanding'): ?>
                         <!-- Reminder Button (hidden by default) -->
                         <div id="reminderButtonContainer" style="margin-bottom: 20px; display: none;">
-                            <form id="reminderForm" method="POST">
+                            <form id="reminderForm" method="POST" style="display: inline;">
                                 <button type="submit" name="send_reminders" class="btn btn-warning" id="sendReminderBtn">
                                     <i class="fas fa-envelope"></i>
                                     Send reminder
                                 </button>
                                 <input type="hidden" name="selected_jobs" id="selectedJobsInput" value="">
                             </form>
+                            
+                            <?php if (isset($_SESSION['prepared_emails']) && !empty($_SESSION['prepared_emails'])): ?>
+                                <button type="button" class="btn btn-info" id="viewEmailsBtn" style="margin-left: 10px;">
+                                    <i class="fas fa-eye"></i>
+                                    View Emails
+                                </button>
+                            <?php endif; ?>
                         </div>
+                        
+                        <!-- Email Preview Modal -->
+                        <?php if (isset($_SESSION['prepared_emails']) && !empty($_SESSION['prepared_emails'])): ?>
+                            <div id="emailPreviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 8px; max-width: 800px; max-height: 80%; overflow-y: auto;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                        <h2>Prepared Reminder Emails</h2>
+                                        <button type="button" id="closeModalBtn" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                                    </div>
+                                    
+                                    <?php foreach ($_SESSION['prepared_emails'] as $index => $email): ?>
+                                        <div style="border: 1px solid #ddd; margin-bottom: 20px; padding: 20px; border-radius: 4px;">
+                                            <h3>Email <?php echo $index + 1; ?>: <?php echo htmlspecialchars($email['client_name']); ?></h3>
+                                            <p><strong>To:</strong> <?php echo htmlspecialchars($email['client_email']); ?></p>
+                                            <p><strong>Subject:</strong> <?php echo htmlspecialchars($email['subject']); ?></p>
+                                            <div style="margin-top: 15px;">
+                                                <strong>Message:</strong>
+                                                <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 10px; white-space: pre-line;"><?php echo htmlspecialchars($email['body']); ?></div>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                    
+                                    <div style="margin-top: 20px; text-align: right;">
+                                        <button type="button" id="closeModalBtn2" class="btn btn-primary">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php 
+                        // Clear the prepared emails from session after displaying
+                        unset($_SESSION['prepared_emails']);
+                        unset($_SESSION['reminder_errors']);
+                        ?>
                     <?php endif; ?>
 
                     <div class="table-container">
@@ -362,6 +410,10 @@ $available_tabs = [
             const jobCheckboxes = document.querySelectorAll('.job-checkbox');
             const reminderButtonContainer = document.getElementById('reminderButtonContainer');
             const selectedJobsInput = document.getElementById('selectedJobsInput');
+            const viewEmailsBtn = document.getElementById('viewEmailsBtn');
+            const emailPreviewModal = document.getElementById('emailPreviewModal');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const closeModalBtn2 = document.getElementById('closeModalBtn2');
             
             if (selectAllCheckbox && jobCheckboxes.length > 0) {
                 // Select All functionality
@@ -407,6 +459,39 @@ $available_tabs = [
                         selectAllCheckbox.indeterminate = true;
                     }
                 }
+            }
+            
+            // Modal functionality for viewing emails
+            if (viewEmailsBtn && emailPreviewModal) {
+                viewEmailsBtn.addEventListener('click', function() {
+                    emailPreviewModal.style.display = 'block';
+                });
+                
+                function closeModal() {
+                    emailPreviewModal.style.display = 'none';
+                }
+                
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', closeModal);
+                }
+                
+                if (closeModalBtn2) {
+                    closeModalBtn2.addEventListener('click', closeModal);
+                }
+                
+                // Close modal when clicking outside
+                emailPreviewModal.addEventListener('click', function(e) {
+                    if (e.target === emailPreviewModal) {
+                        closeModal();
+                    }
+                });
+                
+                // Close modal with Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape' && emailPreviewModal.style.display === 'block') {
+                        closeModal();
+                    }
+                });
             }
         });
     </script>
@@ -514,6 +599,33 @@ $available_tabs = [
         
         .job-row td:first-child input {
             cursor: pointer;
+        }
+        
+        /* Modal styles */
+        .btn-info {
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+            color: white;
+        }
+        
+        #emailPreviewModal {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        #emailPreviewModal h2 {
+            color: #333;
+            margin: 0;
+        }
+        
+        #emailPreviewModal h3 {
+            color: #007bff;
+            margin-top: 0;
         }
         
         @media (max-width: 768px) {
