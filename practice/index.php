@@ -149,16 +149,16 @@ try {
                     </div>
                     <?php endif; ?>
 
-                    <!-- 5. Tasks - Available to all users -->
+                    <!-- 5. Settings - Available to all users -->
                     <div class="portal-card">
                         <div class="portal-icon">
-                            <i class="fas fa-tasks"></i>
+                            <i class="fas fa-cog"></i>
                         </div>
-                        <h3>Tasks</h3>
-                        <p>Manage available tasks for timesheet entries</p>
-                        <a href="../tasks" class="btn btn-primary">
+                        <h3>Settings</h3>
+                        <p>Manage system settings and configurations</p>
+                        <a href="../settings" class="btn btn-primary">
                             <i class="fas fa-arrow-right"></i>
-                            Manage Tasks
+                            Go to Settings
                         </a>
                     </div>
 
@@ -173,19 +173,6 @@ try {
                         <a href="../cfresponse" class="btn btn-primary">
                             <i class="fas fa-arrow-right"></i>
                             View Responses
-                        </a>
-                    </div>
-
-                    <!-- 7. Users - Administrator only -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <h3>Users</h3>
-                        <p>Manage system users and accounts</p>
-                        <a href="../users" class="btn btn-primary">
-                            <i class="fas fa-arrow-right"></i>
-                            Manage Users
                         </a>
                     </div>
                     <?php endif; ?>
