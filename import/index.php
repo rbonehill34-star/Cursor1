@@ -86,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import'])) {
                     try {
                         if ($table === 'clients') {
                             // Import clients data
-                            $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact, email, phone, company_number, authentication_code, utr_number, partner_id, year_end, year_end_work, payroll, directors_sa, vat, vat_periods) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact, email, phone, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, year_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                             $stmt->execute([
                                 $data[0] ?? '', // reference
                                 $data[1] ?? '', // name
@@ -98,12 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import'])) {
                                 $data[7] ?? '', // authentication_code
                                 $data[8] ?? '', // utr_number
                                 !empty($data[9]) ? $data[9] : null, // partner_id
-                                !empty($data[10]) ? $data[10] : null, // year_end
                                 !empty($data[11]) ? $data[11] : 'N', // year_end_work
                                 !empty($data[12]) ? $data[12] : 'N', // payroll
                                 !empty($data[13]) ? $data[13] : 'N', // directors_sa
                                 !empty($data[14]) ? $data[14] : 'N', // vat
-                                $data[15] ?? '' // vat_periods
+                                $data[15] ?? '', // vat_periods
+                                !empty($data[10]) ? $data[10] : null // year_end
                             ]);
                             $successCount++;
                         } elseif ($table === 'jobs') {

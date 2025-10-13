@@ -46,12 +46,62 @@ if (isset($_GET['archive']) && is_numeric($_GET['archive'])) {
     }
 }
 
+// Handle reminder action
+if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
+    $selected_jobs = $_POST['selected_jobs'];
+    $reminder_count = 0;
+    $errors = [];
+    
+    foreach ($selected_jobs as $job_id) {
+        try {
+            // Get job and client details for email
+            $stmt = $pdo->prepare("
+                SELECT j.*, c.name as client_name, c.email as client_email, c.contact as client_contact
+                FROM jobs j
+                LEFT JOIN clients c ON j.client_id = c.id
+                WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
+            ");
+            $stmt->execute([$job_id]);
+            $job = $stmt->fetch();
+            
+            if ($job && !empty($job['client_email'])) {
+                // Prepare email content
+                $subject = "Information needed for Accounts for the year ended " . date('d/m/Y', strtotime($job['deadline_date']));
+                $body = "Dear " . $job['client_contact'] . "\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob";
+                
+                // For now, we'll just log the email (in a real implementation, you'd send it)
+                // You can integrate with PHPMailer, mail() function, or your preferred email service
+                error_log("REMINDER EMAIL - To: " . $job['client_email'] . " | Subject: " . $subject . " | Body: " . $body);
+                
+                $reminder_count++;
+            } else {
+                $errors[] = "No email address for client: " . $job['client_name'];
+            }
+        } catch (PDOException $e) {
+            $errors[] = "Failed to process job ID: " . $job_id;
+        }
+    }
+    
+    if ($reminder_count > 0) {
+        $message = $reminder_count . " reminder(s) prepared successfully.";
+        if (!empty($errors)) {
+            $message .= " Errors: " . implode(', ', $errors);
+        }
+        $messageType = 'success';
+    } else {
+        $message = 'No reminders could be prepared. ' . implode(', ', $errors);
+        $messageType = 'error';
+    }
+}
+
 // Function to get jobs based on tab
 function getJobsByTab($pdo, $tab) {
     $base_query = "
         SELECT j.*, 
                c.name as client_name, 
                c.reference as client_reference,
+               c.email as client_email,
+               c.contact as client_contact,
                t.task_name,
                s.state_name
         FROM jobs j
@@ -187,10 +237,28 @@ $available_tabs = [
                         </div>
                     </div>
 
+                    <?php if ($active_tab === 'outstanding'): ?>
+                        <!-- Reminder Button (hidden by default) -->
+                        <div id="reminderButtonContainer" style="margin-bottom: 20px; display: none;">
+                            <form id="reminderForm" method="POST">
+                                <button type="submit" name="send_reminders" class="btn btn-warning" id="sendReminderBtn">
+                                    <i class="fas fa-envelope"></i>
+                                    Send reminder
+                                </button>
+                                <input type="hidden" name="selected_jobs" id="selectedJobsInput" value="">
+                            </form>
+                        </div>
+                    <?php endif; ?>
+
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <?php if ($active_tab === 'outstanding'): ?>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="selectAllCheckbox" title="Select All">
+                                        </th>
+                                    <?php endif; ?>
                                     <th>Client</th>
                                     <th>Task</th>
                                     <th>Completion</th>
@@ -200,6 +268,14 @@ $available_tabs = [
                                 <?php foreach ($jobs as $job): ?>
                                     <?php $jobId = isset($job['id']) ? $job['id'] : 0; ?>
                                     <tr class="job-row" data-job-id="<?php echo $jobId; ?>" style="cursor: pointer;">
+                                        <?php if ($active_tab === 'outstanding'): ?>
+                                            <td>
+                                                <input type="checkbox" class="job-checkbox" data-job-id="<?php echo $jobId; ?>" 
+                                                       data-client-email="<?php echo htmlspecialchars($job['client_email'] ?? ''); ?>"
+                                                       data-client-contact="<?php echo htmlspecialchars($job['client_contact'] ?? ''); ?>"
+                                                       data-deadline-date="<?php echo htmlspecialchars($job['deadline_date'] ?? ''); ?>">
+                                            </td>
+                                        <?php endif; ?>
                                         <td>
                                             <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
                                         </td>
@@ -248,6 +324,10 @@ $available_tabs = [
                 const jobId = row.getAttribute('data-job-id');
                 
                 row.addEventListener('click', function(e) {
+                    // Don't navigate if clicking on checkbox
+                    if (e.target.type === 'checkbox') {
+                        return;
+                    }
                     if (jobId && jobId !== '0') {
                         window.location.href = 'add.php?id=' + jobId;
                     }
@@ -263,8 +343,10 @@ $available_tabs = [
                     const rows = tableBody.getElementsByTagName('tr');
 
                     Array.from(rows).forEach(row => {
-                        const clientName = row.cells[0].textContent.toLowerCase();
-                        const taskName = row.cells[1].textContent.toLowerCase();
+                        // Adjust cell indices based on whether checkboxes are present
+                        const cellOffset = document.querySelector('.job-checkbox') ? 1 : 0;
+                        const clientName = row.cells[cellOffset].textContent.toLowerCase();
+                        const taskName = row.cells[cellOffset + 1].textContent.toLowerCase();
                         
                         if (clientName.includes(searchTerm) || taskName.includes(searchTerm)) {
                             row.style.display = '';
@@ -273,6 +355,58 @@ $available_tabs = [
                         }
                     });
                 });
+            }
+
+            // Reminder functionality (only for outstanding tab)
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            const jobCheckboxes = document.querySelectorAll('.job-checkbox');
+            const reminderButtonContainer = document.getElementById('reminderButtonContainer');
+            const selectedJobsInput = document.getElementById('selectedJobsInput');
+            
+            if (selectAllCheckbox && jobCheckboxes.length > 0) {
+                // Select All functionality
+                selectAllCheckbox.addEventListener('change', function() {
+                    jobCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                    updateReminderButton();
+                });
+                
+                // Individual checkbox functionality
+                jobCheckboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', function() {
+                        updateReminderButton();
+                        updateSelectAllState();
+                    });
+                });
+                
+                function updateReminderButton() {
+                    const checkedBoxes = document.querySelectorAll('.job-checkbox:checked');
+                    const selectedJobIds = Array.from(checkedBoxes).map(cb => cb.dataset.jobId);
+                    
+                    if (selectedJobIds.length > 0) {
+                        reminderButtonContainer.style.display = 'block';
+                        selectedJobsInput.value = selectedJobIds.join(',');
+                    } else {
+                        reminderButtonContainer.style.display = 'none';
+                        selectedJobsInput.value = '';
+                    }
+                }
+                
+                function updateSelectAllState() {
+                    const totalCheckboxes = jobCheckboxes.length;
+                    const checkedCheckboxes = document.querySelectorAll('.job-checkbox:checked').length;
+                    
+                    if (checkedCheckboxes === 0) {
+                        selectAllCheckbox.indeterminate = false;
+                        selectAllCheckbox.checked = false;
+                    } else if (checkedCheckboxes === totalCheckboxes) {
+                        selectAllCheckbox.indeterminate = false;
+                        selectAllCheckbox.checked = true;
+                    } else {
+                        selectAllCheckbox.indeterminate = true;
+                    }
+                }
             }
         });
     </script>
@@ -343,6 +477,43 @@ $available_tabs = [
         .no-data {
             color: #6c757d;
             font-style: italic;
+        }
+        
+        /* Reminder functionality styles */
+        .btn-warning {
+            background-color: #ffc107;
+            border-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+            color: #212529;
+        }
+        
+        #reminderButtonContainer {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+        }
+        
+        .job-checkbox {
+            cursor: pointer;
+        }
+        
+        .job-checkbox:checked {
+            background-color: #007bff;
+        }
+        
+        /* Prevent row click when clicking checkbox */
+        .job-row td:first-child {
+            cursor: default;
+        }
+        
+        .job-row td:first-child input {
+            cursor: pointer;
         }
         
         @media (max-width: 768px) {
