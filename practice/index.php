@@ -170,7 +170,7 @@ try {
                         </div>
                         <h3>Contact Form Responses</h3>
                         <p>View and manage contact form submissions</p>
-                        <a href="../admin" class="btn btn-primary">
+                        <a href="../cfresponse" class="btn btn-primary">
                             <i class="fas fa-arrow-right"></i>
                             View Responses
                         </a>
@@ -244,5 +244,12 @@ try {
             <p>&copy; 2024 Cursor1. All rights reserved.</p>
         </div>
     </footer>
+
+    <style>
+        /* Reduce gap between header and page content */
+        .practice-section {
+            padding-top: 20px !important;
+        }
+    </style>
 </body>
 </html>

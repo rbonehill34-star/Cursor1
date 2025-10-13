@@ -78,7 +78,7 @@ if ($_POST) {
                             <i class="fas fa-lock"></i>
                         </div>
                         <h1 class="login-title">Admin Login</h1>
-                        <p class="login-subtitle">Sign in to access the admin dashboard</p>
+                        <p class="login-subtitle">Sign in to access the practice portal</p>
                     </div>
 
                     <?php if ($error): ?>

@@ -168,6 +168,11 @@ try {
     </script>
 
     <style>
+        /* Reduce gap between header and page content */
+        .admin-section {
+            padding-top: 20px !important;
+        }
+        
         .badge {
             display: inline-block;
             padding: 4px 12px;

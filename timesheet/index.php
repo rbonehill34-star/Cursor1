@@ -377,6 +377,13 @@ for ($i = -12; $i <= 12; $i++) {
         </div>
     </footer>
 
+    <style>
+        /* Reduce gap between header and page content */
+        .admin-section {
+            padding-top: 20px !important;
+        }
+    </style>
+
     <script>
         // Timesheet entries data
         const timesheetEntries = <?php echo json_encode($entries_by_date); ?>;

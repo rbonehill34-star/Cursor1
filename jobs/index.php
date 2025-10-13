@@ -280,7 +280,7 @@ $available_tabs = [
     <style>
         /* Reduce gap between header and page title */
         .admin-section {
-            padding-top: 40px !important;
+            padding-top: 20px !important;
         }
         
         .tabs-container {

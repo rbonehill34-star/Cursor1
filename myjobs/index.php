@@ -256,7 +256,7 @@ if ($account_type === 'Basic') {
     <style>
         /* Reduce gap between header and page title */
         .admin-section {
-            padding-top: 40px !important;
+            padding-top: 20px !important;
         }
         
         .client-id {

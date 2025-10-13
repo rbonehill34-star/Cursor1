@@ -141,6 +141,13 @@ try {
         </div>
     </footer>
 
+    <style>
+        /* Reduce gap between header and page content */
+        .admin-section {
+            padding-top: 20px !important;
+        }
+    </style>
+
     <script>
         // Make table rows clickable
         document.querySelectorAll('.clickable-row').forEach(row => {

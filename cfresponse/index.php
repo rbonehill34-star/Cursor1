@@ -35,7 +35,7 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard - Cursor1</title>
+    <title>Contact Form Responses - Cursor1</title>
     <link rel="icon" type="image/png" href="../assets/images/RJA-icon Blue.png">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -46,7 +46,7 @@ try {
         <div class="nav-container">
             <div class="nav-logo">
                 <i class="fas fa-database"></i>
-                <span>Cursor1 Admin</span>
+                <span>Contact Form Responses</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -66,44 +66,8 @@ try {
         <div class="admin-section">
             <div class="container">
                 <div class="admin-header">
-                    <h1 class="admin-title">Admin Dashboard</h1>
-                    <p class="admin-subtitle">Welcome back, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
+                    <h1 class="admin-title">Contact Form Responses</h1>                
                 </div>
-
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo count($responses); ?></h3>
-                            <p>Total Messages</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo count(array_filter($responses, function($r) { 
-                                return strtotime($r['created_at']) > strtotime('-24 hours'); 
-                            })); ?></h3>
-                            <p>Last 24 Hours</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo count(array_filter($responses, function($r) { 
-                                return strtotime($r['created_at']) > strtotime('-7 days'); 
-                            })); ?></h3>
-                            <p>This Week</p>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="responses-section">
                     <div class="section-header">
                         <h2>Form Responses</h2>
@@ -203,6 +167,13 @@ try {
             <p>&copy; 2024 Cursor1. All rights reserved.</p>
         </div>
     </footer>
+
+    <style>
+        /* Reduce gap between header and page content */
+        .admin-section {
+            padding-top: 20px !important;
+        }
+    </style>
 
     <script>
         function refreshPage() {
