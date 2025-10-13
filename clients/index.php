@@ -115,6 +115,7 @@ try {
                             <thead>
                                 <tr>
                                     <th>Name</th>
+                                    <th>Type</th>
                                     <th>Reference</th>
                                     <th>Contact</th>
                                 </tr>
@@ -123,6 +124,7 @@ try {
                                 <?php foreach ($clients as $client): ?>
                                     <tr class="clickable-row" data-href="edit?id=<?php echo $client['id']; ?>" style="cursor: pointer;">
                                         <td><?php echo htmlspecialchars($client['name']); ?></td>
+                                        <td><?php echo htmlspecialchars($client['type'] ?? 'Company'); ?></td>
                                         <td><strong><?php echo htmlspecialchars($client['reference']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($client['contact'] ?? '-'); ?></td>
                                     </tr>
@@ -166,10 +168,11 @@ try {
 
                 Array.from(rows).forEach(row => {
                     const name = row.cells[0].textContent.toLowerCase();
-                    const reference = row.cells[1].textContent.toLowerCase();
-                    const contact = row.cells[2].textContent.toLowerCase();
+                    const type = row.cells[1].textContent.toLowerCase();
+                    const reference = row.cells[2].textContent.toLowerCase();
+                    const contact = row.cells[3].textContent.toLowerCase();
                     
-                    if (name.includes(searchTerm) || reference.includes(searchTerm) || contact.includes(searchTerm)) {
+                    if (name.includes(searchTerm) || type.includes(searchTerm) || reference.includes(searchTerm) || contact.includes(searchTerm)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';

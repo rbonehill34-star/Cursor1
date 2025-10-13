@@ -43,6 +43,7 @@ if (isset($_POST['delete_client'])) {
 if (isset($_POST['update_client'])) {
     $reference = trim($_POST['reference'] ?? '');
     $name = trim($_POST['name'] ?? '');
+    $type = $_POST['type'] ?? 'Company';
     $contact = trim($_POST['contact'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -91,8 +92,8 @@ if (isset($_POST['update_client'])) {
                 $messageType = 'error';
             } else {
                 // Update client
-                $stmt = $pdo->prepare("UPDATE clients SET reference = ?, name = ?, contact = ?, email = ?, phone = ?, year_end = ?, company_number = ?, authentication_code = ?, utr_number = ?, partner_id = ?, year_end_work = ?, payroll = ?, directors_sa = ?, vat = ?, vat_periods = ? WHERE id = ?");
-                $stmt->execute([$reference, $name, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods, $client_id]);
+                $stmt = $pdo->prepare("UPDATE clients SET reference = ?, name = ?, type = ?, contact = ?, email = ?, phone = ?, year_end = ?, company_number = ?, authentication_code = ?, utr_number = ?, partner_id = ?, year_end_work = ?, payroll = ?, directors_sa = ?, vat = ?, vat_periods = ? WHERE id = ?");
+                $stmt->execute([$reference, $name, $type, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods, $client_id]);
                 
                 $message = 'Client updated successfully!';
                 $messageType = 'success';
@@ -192,11 +193,23 @@ try {
                             <div class="form-group">
                                 <label for="name" class="form-label">
                                     <i class="fas fa-building"></i>
-                                    Company Name *
+                                    Client Name *
                                 </label>
                                 <input type="text" id="name" name="name" class="form-input" 
                                        value="<?php echo htmlspecialchars($client['name']); ?>" 
-                                       placeholder="Enter company name" required>
+                                       placeholder="Enter client name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="type" class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    Type *
+                                </label>
+                                <select id="type" name="type" class="form-input" required>
+                                    <option value="Company" <?php echo (($client['type'] ?? 'Company') === 'Company') ? 'selected' : ''; ?>>Company</option>
+                                    <option value="Individual" <?php echo (($client['type'] ?? 'Company') === 'Individual') ? 'selected' : ''; ?>>Individual</option>
+                                    <option value="Partnership" <?php echo (($client['type'] ?? 'Company') === 'Partnership') ? 'selected' : ''; ?>>Partnership</option>
+                                </select>
                             </div>
 
                             <div class="form-group">

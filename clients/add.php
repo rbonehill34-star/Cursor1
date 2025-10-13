@@ -20,6 +20,7 @@ $messageType = '';
 if ($_POST) {
     $reference = trim($_POST['reference'] ?? '');
     $name = trim($_POST['name'] ?? '');
+    $type = $_POST['type'] ?? 'Company';
     $contact = trim($_POST['contact'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
@@ -68,14 +69,14 @@ if ($_POST) {
                 $messageType = 'error';
             } else {
                 // Insert new client
-                $stmt = $pdo->prepare("INSERT INTO clients (reference, name, contact, email, phone, year_end, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, date_added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-                $stmt->execute([$reference, $name, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods]);
+                $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact, email, phone, year_end, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, date_added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmt->execute([$reference, $name, $type, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods]);
                 
                 $message = 'Client added successfully!';
                 $messageType = 'success';
                 
                 // Clear form data
-                $reference = $name = $contact = $email = $phone = $year_end = $company_number = $authentication_code = $utr_number = $partner_id = $year_end_work = $payroll = $directors_sa = $vat = $vat_periods = '';
+                $reference = $name = $type = $contact = $email = $phone = $year_end = $company_number = $authentication_code = $utr_number = $partner_id = $year_end_work = $payroll = $directors_sa = $vat = $vat_periods = '';
             }
         } catch (PDOException $e) {
             $message = 'Failed to add client: ' . $e->getMessage();
@@ -157,11 +158,23 @@ if ($_POST) {
                             <div class="form-group">
                                 <label for="name" class="form-label">
                                     <i class="fas fa-building"></i>
-                                    Company Name *
+                                    Client Name *
                                 </label>
                                 <input type="text" id="name" name="name" class="form-input" 
                                        value="<?php echo htmlspecialchars($name ?? ''); ?>" 
-                                       placeholder="Enter company name" required>
+                                       placeholder="Enter client name" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="type" class="form-label">
+                                    <i class="fas fa-tag"></i>
+                                    Type *
+                                </label>
+                                <select id="type" name="type" class="form-input" required>
+                                    <option value="Company" <?php echo ($type === 'Company') ? 'selected' : ''; ?>>Company</option>
+                                    <option value="Individual" <?php echo ($type === 'Individual') ? 'selected' : ''; ?>>Individual</option>
+                                    <option value="Partnership" <?php echo ($type === 'Partnership') ? 'selected' : ''; ?>>Partnership</option>
+                                </select>
                             </div>
 
                             <div class="form-group">
