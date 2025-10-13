@@ -94,8 +94,10 @@ if (isset($_POST['update_client'])) {
                 $messageType = 'success';
             }
         } catch (PDOException $e) {
-            $message = 'Failed to update client. Please try again.';
+            $message = 'Failed to update client: ' . $e->getMessage();
             $messageType = 'error';
+            // Log the error for debugging
+            error_log("Client update error: " . $e->getMessage() . " - SQL: " . $e->getTraceAsString());
         }
     }
 }

@@ -74,8 +74,10 @@ if ($_POST) {
                 $reference = $name = $contact = $email = $phone = $year_end = $company_number = $authentication_code = $utr_number = $partner_id = $year_end_work = $payroll = $directors_sa = $vat = $vat_periods = '';
             }
         } catch (PDOException $e) {
-            $message = 'Failed to add client. Please try again.';
+            $message = 'Failed to add client: ' . $e->getMessage();
             $messageType = 'error';
+            // Log the error for debugging
+            error_log("Client add error: " . $e->getMessage() . " - SQL: " . $e->getTraceAsString());
         }
     }
 }
