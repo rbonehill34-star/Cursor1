@@ -175,6 +175,18 @@ $available_tabs = [
                         </a>
                     </div>
                 <?php else: ?>
+                    <div class="search-container" style="margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="jobSearch" class="form-label">
+                                <i class="fas fa-search"></i>
+                                Search Jobs
+                            </label>
+                            <input type="text" id="jobSearch" class="form-input" 
+                                   placeholder="Type to search jobs by client name..." 
+                                   autocomplete="off">
+                        </div>
+                    </div>
+
                     <div class="table-container">
                         <table class="data-table">
                             <thead>
@@ -184,7 +196,7 @@ $available_tabs = [
                                     <th>Completion</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="jobsTableBody">
                                 <?php foreach ($jobs as $job): ?>
                                     <?php $jobId = isset($job['id']) ? $job['id'] : 0; ?>
                                     <tr class="job-row" data-job-id="<?php echo $jobId; ?>" style="cursor: pointer;">
@@ -241,10 +253,36 @@ $available_tabs = [
                     }
                 });
             });
+
+            // Search functionality
+            const searchInput = document.getElementById('jobSearch');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const tableBody = document.getElementById('jobsTableBody');
+                    const rows = tableBody.getElementsByTagName('tr');
+
+                    Array.from(rows).forEach(row => {
+                        const clientName = row.cells[0].textContent.toLowerCase();
+                        const taskName = row.cells[1].textContent.toLowerCase();
+                        
+                        if (clientName.includes(searchTerm) || taskName.includes(searchTerm)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                });
+            }
         });
     </script>
 
     <style>
+        /* Reduce gap between header and page title */
+        .admin-section {
+            padding-top: 40px !important;
+        }
+        
         .tabs-container {
             margin: 20px 0;
             border-bottom: 1px solid #e9ecef;

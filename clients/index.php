@@ -162,7 +162,7 @@ try {
                     const reference = row.cells[1].textContent.toLowerCase();
                     const contact = row.cells[2].textContent.toLowerCase();
                     
-                    if (name.startsWith(searchTerm) || reference.startsWith(searchTerm) || contact.startsWith(searchTerm)) {
+                    if (name.includes(searchTerm) || reference.includes(searchTerm) || contact.includes(searchTerm)) {
                         row.style.display = '';
                     } else {
                         row.style.display = 'none';
