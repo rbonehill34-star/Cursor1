@@ -93,6 +93,19 @@ if (isset($_GET['logout'])) {
                         </a>
                     </div>
                     <?php endif; ?>
+
+                    <!-- Import Data - Available to all users -->
+                    <div class="settings-portal-card">
+                        <div class="settings-portal-icon">
+                            <i class="fas fa-file-import"></i>
+                        </div>
+                        <h3>Import Data</h3>
+                        <p>Import clients and jobs from CSV files</p>
+                        <a href="../import" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Import Data
+                        </a>
+                    </div>
                 </div>
 
             </div>
@@ -113,13 +126,16 @@ if (isset($_GET['logout'])) {
         
         /* Compact settings page styles */
         .settings-portal-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 40px;
+            justify-content: center;
         }
         
         .settings-portal-card {
+            flex: 0 0 calc(16.666% - 12.5px); /* 1/6 minus gap */
+            max-width: calc(16.666% - 12.5px);
             background: white;
             padding: 15px 10px;
             border-radius: 12px;
@@ -170,19 +186,16 @@ if (isset($_GET['logout'])) {
         
         /* Mobile responsive adjustments for settings */
         @media (max-width: 1200px) {
-            .settings-portal-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 12px;
+            .settings-portal-card {
+                flex: 0 0 calc(25% - 11.25px); /* 1/4 minus gap */
+                max-width: calc(25% - 11.25px);
             }
         }
         
         @media (max-width: 768px) {
-            .settings-portal-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-            
             .settings-portal-card {
+                flex: 0 0 calc(33.333% - 10px); /* 1/3 minus gap */
+                max-width: calc(33.333% - 10px);
                 padding: 12px 8px;
                 min-height: 120px;
             }
@@ -209,12 +222,9 @@ if (isset($_GET['logout'])) {
         }
         
         @media (max-width: 480px) {
-            .settings-portal-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 8px;
-            }
-            
             .settings-portal-card {
+                flex: 0 0 calc(50% - 4px); /* 1/2 minus gap */
+                max-width: calc(50% - 4px);
                 padding: 10px 6px;
                 min-height: 100px;
             }

@@ -94,10 +94,10 @@ try {
                 </div>
 
                 <!-- Buttons for the portal pages -->
-                <div class="portal-grid">
+                <div class="practice-portal-grid">
                     <!-- 1. Timesheet - Available to all users -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-clock"></i>
                         </div>
                         <h3>Timesheet</h3>
@@ -109,8 +109,8 @@ try {
                     </div>
 
                     <!-- 2. My Job List - Available to all users -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-list-check"></i>
                         </div>
                         <h3>My Job List</h3>
@@ -123,8 +123,8 @@ try {
 
                     <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
                     <!-- 3. Jobs - Available to Managers and Administrators -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-briefcase"></i>
                         </div>
                         <h3>Jobs</h3>
@@ -136,8 +136,8 @@ try {
                     </div>
 
                     <!-- 4. Clients - Available to Managers and Administrators -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-users"></i>
                         </div>
                         <h3>Clients</h3>
@@ -150,8 +150,8 @@ try {
                     <?php endif; ?>
 
                     <!-- 5. Settings - Available to all users -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-cog"></i>
                         </div>
                         <h3>Settings</h3>
@@ -164,8 +164,8 @@ try {
 
                     <?php if ($account_type === 'Administrator'): ?>
                     <!-- 6. Contact Form Responses - Administrator only -->
-                    <div class="portal-card">
-                        <div class="portal-icon">
+                    <div class="practice-portal-card">
+                        <div class="practice-portal-icon">
                             <i class="fas fa-envelope"></i>
                         </div>
                         <h3>Contact Form Responses</h3>
@@ -174,50 +174,6 @@ try {
                             <i class="fas fa-arrow-right"></i>
                             View Responses
                         </a>
-                    </div>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Portal Statistics -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['timesheet_entries']; ?></h3>
-                            <p>Total Timesheet Entries</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar-week"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['this_week_entries']; ?></h3>
-                            <p>This Week's Entries</p>
-                        </div>
-                    </div>
-                    <?php if (in_array($account_type, ['Manager', 'Administrator'])): ?>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['total_clients'] ?? 0; ?></h3>
-                            <p>Total Clients</p>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-                    <?php if ($account_type === 'Administrator'): ?>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div class="stat-content">
-                            <h3><?php echo $stats['form_responses'] ?? 0; ?></h3>
-                            <p>Form Responses</p>
-                        </div>
                     </div>
                     <?php endif; ?>
                 </div>
@@ -236,6 +192,132 @@ try {
         /* Reduce gap between header and page content */
         .practice-section {
             padding-top: 20px !important;
+        }
+        
+        /* Compact practice portal styles to match settings page */
+        .practice-portal-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+        
+        .practice-portal-card {
+            flex: 0 0 calc(16.666% - 12.5px); /* 1/6 minus gap */
+            max-width: calc(16.666% - 12.5px);
+            background: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .practice-portal-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .practice-portal-icon {
+            font-size: 1.5rem;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .practice-portal-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+        
+        .practice-portal-card p {
+            color: #666;
+            line-height: 1.3;
+            margin-bottom: 10px;
+            font-size: 0.75rem;
+            flex-grow: 1;
+        }
+        
+        .practice-portal-card .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            margin-top: auto;
+        }
+        
+        /* Mobile responsive adjustments for practice portal */
+        @media (max-width: 1200px) {
+            .practice-portal-card {
+                flex: 0 0 calc(25% - 11.25px); /* 1/4 minus gap */
+                max-width: calc(25% - 11.25px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .practice-portal-card {
+                flex: 0 0 calc(33.333% - 10px); /* 1/3 minus gap */
+                max-width: calc(33.333% - 10px);
+                padding: 12px 8px;
+                min-height: 120px;
+            }
+            
+            .practice-portal-icon {
+                font-size: 1.3rem;
+                margin-bottom: 6px;
+            }
+            
+            .practice-portal-card h3 {
+                font-size: 0.8rem;
+                margin-bottom: 4px;
+            }
+            
+            .practice-portal-card p {
+                font-size: 0.7rem;
+                margin-bottom: 8px;
+            }
+            
+            .practice-portal-card .btn {
+                padding: 6px 8px;
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .practice-portal-card {
+                flex: 0 0 calc(50% - 4px); /* 1/2 minus gap */
+                max-width: calc(50% - 4px);
+                padding: 10px 6px;
+                min-height: 100px;
+            }
+            
+            .practice-portal-icon {
+                font-size: 1.2rem;
+                margin-bottom: 4px;
+            }
+            
+            .practice-portal-card h3 {
+                font-size: 0.75rem;
+                margin-bottom: 3px;
+            }
+            
+            .practice-portal-card p {
+                font-size: 0.65rem;
+                margin-bottom: 6px;
+            }
+            
+            .practice-portal-card .btn {
+                padding: 5px 6px;
+                font-size: 0.65rem;
+            }
         }
     </style>
 </body>
