@@ -33,10 +33,10 @@ if (isset($_GET['template'])) {
         $output = fopen('php://output', 'w');
         
         // Write header row
-        fputcsv($output, ['reference', 'name', 'type', 'contact', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods']);
+        fputcsv($output, ['reference', 'name', 'type', 'contact_forename', 'contact_surname', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods']);
         
         // Write sample data row
-        fputcsv($output, ['CLI001', 'Sample Company Ltd', 'Company', 'John Smith', 'john@sample.com', '+44 1234 567890', '12345678', 'ABC123', '1234567890', '1', '31/03/2024', 'Y', 'N', 'Y', 'Y', 'MJSD']);
+        fputcsv($output, ['CLI001', 'Sample Company Ltd', 'Company', 'John', 'Smith', 'john@sample.com', '+44 1234 567890', '12345678', 'ABC123', '1234567890', '1', '31/03/2024', 'Y', 'N', 'Y', 'Y', 'MJSD']);
         
         fclose($output);
         exit;
@@ -314,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import'])) {
                     
                     // Validate fields based on table type
                     if ($table === 'clients') {
-                        $fieldNames = ['reference', 'name', 'type', 'contact', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods'];
+                        $fieldNames = ['reference', 'name', 'type', 'contact_forename', 'contact_surname', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods'];
                         
                         foreach ($fieldNames as $index => $fieldName) {
                             $value = $data[$index] ?? '';
@@ -359,24 +359,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import'])) {
                     // Try to insert the row
                     try {
                         if ($table === 'clients') {
-                            $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact, email, phone, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, year_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact_forename, contact_surname, email, phone, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, year_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                             $stmt->execute([
                                 $data[0] ?? '', // reference
                                 $data[1] ?? '', // name
                                 $data[2] ?? 'Company', // type
-                                $data[3] ?? '', // contact
-                                $data[4] ?? '', // email
-                                $data[5] ?? '', // phone
-                                $data[6] ?? '', // company_number
-                                $data[7] ?? '', // authentication_code
-                                $data[8] ?? '', // utr_number
-                                !empty($data[9]) ? $data[9] : null, // partner_id
-                                !empty($data[11]) ? $data[11] : 'N', // year_end_work
-                                !empty($data[12]) ? $data[12] : 'N', // payroll
-                                !empty($data[13]) ? $data[13] : 'N', // directors_sa
-                                !empty($data[14]) ? $data[14] : 'N', // vat
-                                $data[15] ?? '', // vat_periods
-                                convertDateFormat($data[10] ?? '') // year_end - convert date format
+                                $data[3] ?? '', // contact_forename
+                                $data[4] ?? '', // contact_surname
+                                $data[5] ?? '', // email
+                                $data[6] ?? '', // phone
+                                $data[7] ?? '', // company_number
+                                $data[8] ?? '', // authentication_code
+                                $data[9] ?? '', // utr_number
+                                !empty($data[10]) ? $data[10] : null, // partner_id
+                                !empty($data[12]) ? $data[12] : 'N', // year_end_work
+                                !empty($data[13]) ? $data[13] : 'N', // payroll
+                                !empty($data[14]) ? $data[14] : 'N', // directors_sa
+                                !empty($data[15]) ? $data[15] : 'N', // vat
+                                $data[16] ?? '', // vat_periods
+                                convertDateFormat($data[11] ?? '') // year_end - convert date format
                             ]);
                             $successCount++;
                         } elseif ($table === 'jobs') {
@@ -523,11 +524,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import'])) {
                                     <div class="data-preview">
                                         <?php 
                                         $fieldNames = ($table === 'clients') ? 
-                                            ['Reference', 'Name', 'Type', 'Contact', 'Email', 'Phone', 'Company Number', 'Auth Code', 'UTR', 'Partner ID', 'Year End', 'Year End Work', 'Payroll', 'Directors SA', 'VAT', 'VAT Periods'] :
+                                            ['Reference', 'Name', 'Type', 'Contact Forename', 'Contact Surname', 'Email', 'Phone', 'Company Number', 'Auth Code', 'UTR', 'Partner ID', 'Year End', 'Year End Work', 'Payroll', 'Directors SA', 'VAT', 'VAT Periods'] :
                                             ['Client ID', 'Client Ref', 'Task ID', 'Description', 'Budget Hours', 'State ID', 'Urgent', 'Partner ID', 'Manager ID', 'Preparer ID', 'Period End', 'Deadline', 'Expected', 'Received', 'Assigned', 'Completed', 'Reviewed', 'Sent to Client', 'Approved', 'Submitted', 'Archived', 'Comments'];
                                         
                                         $fieldKeys = ($table === 'clients') ? 
-                                            ['reference', 'name', 'type', 'contact', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods'] :
+                                            ['reference', 'name', 'type', 'contact_forename', 'contact_surname', 'email', 'phone', 'company_number', 'authentication_code', 'utr_number', 'partner_id', 'year_end', 'year_end_work', 'payroll', 'directors_sa', 'vat', 'vat_periods'] :
                                             ['client_id', 'client_reference', 'task_id', 'description', 'budget_hours', 'state_id', 'urgent', 'partner_id', 'manager_id', 'preparer_id', 'period_end', 'deadline_date', 'expected_completion_date', 'received_date', 'assigned_date', 'completed_date', 'reviewed_date', 'sent_to_client_date', 'approved_date', 'submitted_date', 'archived_date', 'comments'];
                                         
                                         foreach ($errorRow['data'] as $index => $value): 

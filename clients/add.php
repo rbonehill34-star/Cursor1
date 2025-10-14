@@ -21,7 +21,8 @@ if ($_POST) {
     $reference = trim($_POST['reference'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $type = $_POST['type'] ?? 'Company';
-    $contact = trim($_POST['contact'] ?? '');
+    $contact_forename = trim($_POST['contact_forename'] ?? '');
+    $contact_surname = trim($_POST['contact_surname'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $year_end = $_POST['year_end'] ?? '';
@@ -69,14 +70,14 @@ if ($_POST) {
                 $messageType = 'error';
             } else {
                 // Insert new client
-                $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact, email, phone, year_end, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, date_added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-                $stmt->execute([$reference, $name, $type, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods]);
+                $stmt = $pdo->prepare("INSERT INTO clients (reference, name, type, contact_forename, contact_surname, email, phone, year_end, company_number, authentication_code, utr_number, partner_id, year_end_work, payroll, directors_sa, vat, vat_periods, date_added) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmt->execute([$reference, $name, $type, $contact_forename, $contact_surname, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods]);
                 
                 $message = 'Client added successfully!';
                 $messageType = 'success';
                 
                 // Clear form data
-                $reference = $name = $type = $contact = $email = $phone = $year_end = $company_number = $authentication_code = $utr_number = $partner_id = $year_end_work = $payroll = $directors_sa = $vat = $vat_periods = '';
+                $reference = $name = $type = $contact_forename = $contact_surname = $email = $phone = $year_end = $company_number = $authentication_code = $utr_number = $partner_id = $year_end_work = $payroll = $directors_sa = $vat = $vat_periods = '';
             }
         } catch (PDOException $e) {
             $message = 'Failed to add client: ' . $e->getMessage();
@@ -178,13 +179,23 @@ if ($_POST) {
                             </div>
 
                             <div class="form-group">
-                                <label for="contact" class="form-label">
+                                <label for="contact_forename" class="form-label">
                                     <i class="fas fa-user"></i>
-                                    Contact Person
+                                    Contact Forename
                                 </label>
-                                <input type="text" id="contact" name="contact" class="form-input" 
-                                       value="<?php echo htmlspecialchars($contact ?? ''); ?>" 
-                                       placeholder="Contact person name">
+                                <input type="text" id="contact_forename" name="contact_forename" class="form-input" 
+                                       value="<?php echo htmlspecialchars($contact_forename ?? ''); ?>" 
+                                       placeholder="Contact forename">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contact_surname" class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Contact Surname
+                                </label>
+                                <input type="text" id="contact_surname" name="contact_surname" class="form-input" 
+                                       value="<?php echo htmlspecialchars($contact_surname ?? ''); ?>" 
+                                       placeholder="Contact surname">
                             </div>
 
                             <div class="form-group">

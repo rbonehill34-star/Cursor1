@@ -44,7 +44,8 @@ if (isset($_POST['update_client'])) {
     $reference = trim($_POST['reference'] ?? '');
     $name = trim($_POST['name'] ?? '');
     $type = $_POST['type'] ?? 'Company';
-    $contact = trim($_POST['contact'] ?? '');
+    $contact_forename = trim($_POST['contact_forename'] ?? '');
+    $contact_surname = trim($_POST['contact_surname'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
     $year_end = $_POST['year_end'] ?? '';
@@ -92,8 +93,8 @@ if (isset($_POST['update_client'])) {
                 $messageType = 'error';
             } else {
                 // Update client
-                $stmt = $pdo->prepare("UPDATE clients SET reference = ?, name = ?, type = ?, contact = ?, email = ?, phone = ?, year_end = ?, company_number = ?, authentication_code = ?, utr_number = ?, partner_id = ?, year_end_work = ?, payroll = ?, directors_sa = ?, vat = ?, vat_periods = ? WHERE id = ?");
-                $stmt->execute([$reference, $name, $type, $contact, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods, $client_id]);
+                $stmt = $pdo->prepare("UPDATE clients SET reference = ?, name = ?, type = ?, contact_forename = ?, contact_surname = ?, email = ?, phone = ?, year_end = ?, company_number = ?, authentication_code = ?, utr_number = ?, partner_id = ?, year_end_work = ?, payroll = ?, directors_sa = ?, vat = ?, vat_periods = ? WHERE id = ?");
+                $stmt->execute([$reference, $name, $type, $contact_forename, $contact_surname, $email, $phone, $year_end ?: null, $company_number ?: null, $authentication_code ?: null, $utr_number ?: null, $partner_id ?: null, $year_end_work, $payroll, $directors_sa, $vat, $vat_periods, $client_id]);
                 
                 $message = 'Client updated successfully!';
                 $messageType = 'success';
@@ -213,13 +214,23 @@ try {
                             </div>
 
                             <div class="form-group">
-                                <label for="contact" class="form-label">
+                                <label for="contact_forename" class="form-label">
                                     <i class="fas fa-user"></i>
-                                    Contact Person
+                                    Contact Forename
                                 </label>
-                                <input type="text" id="contact" name="contact" class="form-input" 
-                                       value="<?php echo htmlspecialchars($client['contact'] ?? ''); ?>" 
-                                       placeholder="Contact person name">
+                                <input type="text" id="contact_forename" name="contact_forename" class="form-input" 
+                                       value="<?php echo htmlspecialchars($client['contact_forename'] ?? ''); ?>" 
+                                       placeholder="Contact forename">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="contact_surname" class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Contact Surname
+                                </label>
+                                <input type="text" id="contact_surname" name="contact_surname" class="form-input" 
+                                       value="<?php echo htmlspecialchars($client['contact_surname'] ?? ''); ?>" 
+                                       placeholder="Contact surname">
                             </div>
 
                             <div class="form-group">

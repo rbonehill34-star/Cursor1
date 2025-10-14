@@ -82,7 +82,7 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
         try {
             // Get job and client details for email
             $stmt = $pdo->prepare("
-                SELECT j.*, c.name as client_name, c.email as client_email, c.contact as client_contact
+                SELECT j.*, c.name as client_name, c.email as client_email, CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact
                 FROM jobs j
                 LEFT JOIN clients c ON j.client_id = c.id
                 WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
@@ -145,7 +145,7 @@ function getJobsByTab($pdo, $tab) {
                c.name as client_name, 
                c.reference as client_reference,
                c.email as client_email,
-               c.contact as client_contact,
+               CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact,
                t.task_name,
                s.state_name
         FROM jobs j
