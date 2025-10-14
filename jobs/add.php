@@ -70,6 +70,7 @@ $formData = [
     'partner_id' => '',
     'manager_id' => '',
     'preparer_id' => '',
+    'period_end' => '',
     'deadline_date' => '',
     'expected_completion_date' => '',
     'received_date' => '',
@@ -90,6 +91,7 @@ if ($isEdit && isset($existingJob)) {
         'partner_id' => $existingJob['partner_id'] ?? '',
         'manager_id' => $existingJob['manager_id'] ?? '',
         'preparer_id' => $existingJob['preparer_id'] ?? '',
+        'period_end' => $existingJob['period_end'] ?? '',
         'deadline_date' => $existingJob['deadline_date'] ?? '',
         'expected_completion_date' => $existingJob['expected_completion_date'] ?? '',
         'received_date' => $existingJob['received_date'] ?? '',
@@ -110,6 +112,7 @@ if ($_POST) {
     $formData['partner_id'] = $_POST['partner_id'] ?? '';
     $formData['manager_id'] = $_POST['manager_id'] ?? '';
     $formData['preparer_id'] = $_POST['preparer_id'] ?? '';
+    $formData['period_end'] = $_POST['period_end'] ?? '';
     $formData['deadline_date'] = $_POST['deadline_date'] ?? '';
     $formData['expected_completion_date'] = $_POST['expected_completion_date'] ?? '';
     $formData['received_date'] = $_POST['received_date'] ?? '';
@@ -131,7 +134,7 @@ if ($_POST) {
                     UPDATE jobs SET
                         client_id = ?, client_reference = ?, task_id = ?, description = ?, 
                         budget_hours = ?, state_id = ?, urgent = ?, partner_id = ?, 
-                        manager_id = ?, preparer_id = ?, deadline_date = ?, 
+                        manager_id = ?, preparer_id = ?, period_end = ?, deadline_date = ?, 
                         expected_completion_date = ?, received_date = ?, assigned_date = ?, 
                         comments = ?
                     WHERE id = ?
@@ -148,6 +151,7 @@ if ($_POST) {
                     $formData['partner_id'] ?: null,
                     $formData['manager_id'] ?: null,
                     $formData['preparer_id'] ?: null,
+                    $formData['period_end'] ?: null,
                     $formData['deadline_date'] ?: null,
                     $formData['expected_completion_date'] ?: null,
                     $formData['received_date'] ?: null,
@@ -167,9 +171,9 @@ if ($_POST) {
                     INSERT INTO jobs (
                         client_id, client_reference, task_id, description, budget_hours, 
                         state_id, urgent, partner_id, manager_id, preparer_id, 
-                        deadline_date, expected_completion_date, received_date, 
+                        period_end, deadline_date, expected_completion_date, received_date, 
                         assigned_date, comments, created_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
                 ");
                 
                 $stmt->execute([
@@ -183,6 +187,7 @@ if ($_POST) {
                     $formData['partner_id'] ?: null,
                     $formData['manager_id'] ?: null,
                     $formData['preparer_id'] ?: null,
+                    $formData['period_end'] ?: null,
                     $formData['deadline_date'] ?: null,
                     $formData['expected_completion_date'] ?: null,
                     $formData['received_date'] ?: null,
@@ -445,6 +450,16 @@ try {
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+
+                            <!-- Period End Date -->
+                            <div class="form-group">
+                                <label for="period_end" class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Period End
+                                </label>
+                                <input type="date" id="period_end" name="period_end" class="form-input" 
+                                       value="<?php echo htmlspecialchars($formData['period_end']); ?>">
                             </div>
 
                             <!-- Dates -->
