@@ -47,10 +47,35 @@ if (isset($_GET['archive']) && is_numeric($_GET['archive'])) {
 }
 
 // Handle reminder action
+if (isset($_POST['send_reminders'])) {
+    error_log("DEBUG - Form submitted with send_reminders");
+    if (isset($_POST['selected_jobs'])) {
+        error_log("DEBUG - selected_jobs field exists: " . $_POST['selected_jobs']);
+    } else {
+        error_log("DEBUG - selected_jobs field is missing");
+        $message = 'No jobs were selected. Please select at least one job using the checkboxes.';
+        $messageType = 'error';
+    }
+}
+
 if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
+    // Convert comma-separated string to array if needed
     $selected_jobs = $_POST['selected_jobs'];
-    $reminder_count = 0;
-    $errors = [];
+    if (is_string($selected_jobs)) {
+        $selected_jobs = array_filter(explode(',', $selected_jobs));
+    }
+    $selected_jobs = array_map('trim', $selected_jobs); // Remove any whitespace
+    
+    // Debug: Log what we received
+    error_log("DEBUG - Selected jobs received: " . print_r($selected_jobs, true));
+    
+    // Validate that we have job IDs
+    if (empty($selected_jobs) || (count($selected_jobs) === 1 && empty($selected_jobs[0]))) {
+        $message = 'No jobs were selected. Please select at least one job using the checkboxes.';
+        $messageType = 'error';
+    } else {
+        $reminder_count = 0;
+        $errors = [];
     
     foreach ($selected_jobs as $job_id) {
         try {
@@ -64,6 +89,9 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             $stmt->execute([$job_id]);
             $job = $stmt->fetch();
             
+            // Debug: Log job details
+            error_log("DEBUG - Processing job ID: $job_id, Found job: " . print_r($job, true));
+            
             if ($job && !empty($job['client_email'])) {
                 // Prepare email content
                 $subject = "Information needed for Accounts for the year ended " . date('d/m/Y', strtotime($job['deadline_date']));
@@ -75,7 +103,13 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 
                 $reminder_count++;
             } else {
-                $errors[] = "No email address for client: " . $job['client_name'];
+                if (!$job) {
+                    $errors[] = "Job ID $job_id not found or not in Outstanding state";
+                } elseif (empty($job['client_email'])) {
+                    $errors[] = "No email address for client: " . ($job['client_name'] ?? 'Unknown');
+                } else {
+                    $errors[] = "Unknown error processing job ID: $job_id";
+                }
             }
         } catch (PDOException $e) {
             $errors[] = "Failed to process job ID: " . $job_id;
@@ -88,9 +122,10 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             $message .= " Errors: " . implode(', ', $errors);
         }
         $messageType = 'success';
-    } else {
-        $message = 'No reminders could be prepared. ' . implode(', ', $errors);
-        $messageType = 'error';
+        } else {
+            $message = 'No reminders could be prepared. ' . implode(', ', $errors);
+            $messageType = 'error';
+        }
     }
 }
 
@@ -362,6 +397,7 @@ $available_tabs = [
             const jobCheckboxes = document.querySelectorAll('.job-checkbox');
             const reminderButtonContainer = document.getElementById('reminderButtonContainer');
             const selectedJobsInput = document.getElementById('selectedJobsInput');
+            const reminderForm = document.getElementById('reminderForm');
             
             if (selectAllCheckbox && jobCheckboxes.length > 0) {
                 // Select All functionality
@@ -384,9 +420,13 @@ $available_tabs = [
                     const checkedBoxes = document.querySelectorAll('.job-checkbox:checked');
                     const selectedJobIds = Array.from(checkedBoxes).map(cb => cb.dataset.jobId);
                     
+                    console.log('DEBUG - Checked boxes:', checkedBoxes.length);
+                    console.log('DEBUG - Selected job IDs:', selectedJobIds);
+                    
                     if (selectedJobIds.length > 0) {
                         reminderButtonContainer.style.display = 'block';
                         selectedJobsInput.value = selectedJobIds.join(',');
+                        console.log('DEBUG - Setting input value to:', selectedJobsInput.value);
                     } else {
                         reminderButtonContainer.style.display = 'none';
                         selectedJobsInput.value = '';
@@ -407,6 +447,18 @@ $available_tabs = [
                         selectAllCheckbox.indeterminate = true;
                     }
                 }
+            }
+            
+            // Add form submission debugging
+            if (reminderForm) {
+                reminderForm.addEventListener('submit', function(e) {
+                    console.log('DEBUG - Form submitting with selected_jobs value:', selectedJobsInput.value);
+                    if (!selectedJobsInput.value || selectedJobsInput.value.trim() === '') {
+                        e.preventDefault();
+                        alert('No jobs selected. Please select at least one job.');
+                        return false;
+                    }
+                });
             }
         });
     </script>
