@@ -82,7 +82,7 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
         try {
             // Get job and client details for email
             $stmt = $pdo->prepare("
-                SELECT j.*, c.name as client_name, c.email as client_email, CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact
+                SELECT j.*, j.period_end, c.name as client_name, c.email as client_email, c.contact_forename, CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact
                 FROM jobs j
                 LEFT JOIN clients c ON j.client_id = c.id
                 WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
@@ -95,8 +95,10 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             
             if ($job && !empty($job['client_email'])) {
                 // Prepare email content
-                $subject = "Information needed for Accounts for the year ended " . date('d/m/Y', strtotime($job['deadline_date']));
-                $body = "Dear " . $job['client_contact'] . "\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob";
+                $period_end_date = $job['period_end'] ? date('d/m/Y', strtotime($job['period_end'])) : 'TBD';
+                $subject = "Information needed for Accounts for the Period Ended " . $period_end_date;
+                $greeting = $job['contact_forename'] ? "Hi " . $job['contact_forename'] : "Dear " . $job['client_contact'];
+                $body = $greeting . "\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob";
                 
                 // Store email details for display
                 $prepared_emails[] = [
