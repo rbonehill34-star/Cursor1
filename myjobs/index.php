@@ -196,7 +196,12 @@ if ($account_type === 'Basic') {
                                     <?php $jobId = isset($job['id']) ? $job['id'] : 0; ?>
                                     <tr class="job-row" data-job-id="<?php echo $jobId; ?>" style="cursor: pointer;">
                                         <td>
-                                            <strong><?php echo htmlspecialchars($job['client_name']); ?></strong>
+                                            <strong title="<?php echo htmlspecialchars($job['client_name']); ?>">
+                                                <?php 
+                                                $clientName = $job['client_name'];
+                                                echo htmlspecialchars(strlen($clientName) > 20 ? substr($clientName, 0, 20) . '...' : $clientName);
+                                                ?>
+                                            </strong>
                                         </td>
                                         <td><?php echo htmlspecialchars($job['task_name']); ?></td>
                                         <td>
@@ -336,6 +341,28 @@ if ($account_type === 'Basic') {
             font-style: italic;
         }
         
+        /* Client column optimization - minimal width for 20-char names */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            max-width: 120px;
+            min-width: 110px;
+            width: 110px;
+        }
+        
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            max-width: 100px;
+            min-width: 80px;
+            width: 100px;
+        }
+        
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) {
+            max-width: 80px;
+            min-width: 70px;
+            width: 80px;
+        }
+        
         @media (max-width: 768px) {
             .tabs {
                 flex-wrap: wrap;
@@ -345,6 +372,52 @@ if ($account_type === 'Basic') {
                 flex: 1;
                 text-align: center;
                 min-width: 80px;
+            }
+            
+            /* Mobile column optimizations */
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                max-width: 90px;
+                min-width: 80px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                max-width: 60px;
+                min-width: 50px;
+                width: 60px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Extra small mobile optimizations */
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                max-width: 70px;
+                min-width: 60px;
+                width: 60px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                max-width: 70px;
+                min-width: 50px;
+                width: 70px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                max-width: 50px;
+                min-width: 40px;
+                width: 50px;
             }
         }
     </style>

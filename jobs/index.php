@@ -717,12 +717,12 @@ $available_tabs = [
             cursor: pointer;
         }
         
-        /* Client column optimization */
+        /* Client column optimization - minimal width for 20-char names */
         .data-table th:nth-child(2),
         .data-table td:nth-child(2) {
-            max-width: 150px;
-            min-width: 120px;
-            width: 120px;
+            max-width: 120px;
+            min-width: 110px;
+            width: 110px;
         }
         
         .data-table th:nth-child(3),
@@ -753,9 +753,9 @@ $available_tabs = [
             /* Mobile column optimizations */
             .data-table th:nth-child(2),
             .data-table td:nth-child(2) {
-                max-width: 100px;
+                max-width: 90px;
                 min-width: 80px;
-                width: 100px;
+                width: 80px;
             }
             
             .data-table th:nth-child(3),
@@ -777,9 +777,9 @@ $available_tabs = [
             /* Extra small mobile optimizations */
             .data-table th:nth-child(2),
             .data-table td:nth-child(2) {
-                max-width: 80px;
+                max-width: 70px;
                 min-width: 60px;
-                width: 80px;
+                width: 60px;
             }
             
             .data-table th:nth-child(3),
