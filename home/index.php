@@ -19,6 +19,7 @@ require_once '../config/database.php';
             <div class="nav-logo">
                 <img src="../assets/images/RJA-icon Blue.png" alt="RJ Accountancy Logo" style="height: 30px; margin-right: 10px;">
                 <span>RJ Accountancy Limited</span>
+                <img src="../assets/images/ICAEW_CharteredAccountants_BLK_RGB.png" alt="ICAEW Chartered Accountants" style="height: 67px; margin-left: 75px;">
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
