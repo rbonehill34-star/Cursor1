@@ -382,6 +382,212 @@ for ($i = -12; $i <= 12; $i++) {
         .admin-section {
             padding-top: 20px !important;
         }
+        
+        /* Mobile optimizations for timesheet form */
+        @media (max-width: 768px) {
+            .calendar-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .calendar-sidebar {
+                order: 2;
+                padding: 15px;
+            }
+            
+            .calendar-main {
+                order: 1;
+            }
+            
+            .form-section {
+                padding: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .section-title {
+                font-size: 1.1rem;
+                margin-bottom: 15px;
+                padding-bottom: 8px;
+            }
+            
+            .form-layout {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+            
+            .form-group {
+                margin-bottom: 0;
+            }
+            
+            .form-label {
+                font-size: 0.9rem;
+                margin-bottom: 6px;
+            }
+            
+            .form-input,
+            .form-textarea,
+            select.form-input {
+                padding: 10px 12px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                border-radius: 8px;
+            }
+            
+            .form-textarea {
+                min-height: 80px;
+                resize: vertical;
+            }
+            
+            .char-count {
+                font-size: 0.75rem;
+                margin-top: 3px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 20px;
+                padding-top: 15px;
+            }
+            
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px 20px;
+                font-size: 0.9rem;
+                min-height: 44px; /* Touch-friendly */
+            }
+            
+            .week-view-section {
+                margin-top: 20px;
+            }
+            
+            .week-view {
+                grid-template-columns: repeat(7, minmax(35px, 1fr));
+                gap: 1px;
+            }
+            
+            .day-column {
+                padding: 2px;
+                min-height: 50px;
+                min-width: 35px;
+            }
+            
+            .day-header {
+                padding: 1px;
+                font-size: 0.6rem;
+            }
+            
+            .total-time {
+                font-size: 0.55rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .admin-section {
+                padding-top: 10px !important;
+            }
+            
+            .container {
+                padding: 0 10px;
+            }
+            
+            .form-section {
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .section-title {
+                font-size: 1rem;
+                margin-bottom: 12px;
+                padding-bottom: 6px;
+            }
+            
+            .form-layout {
+                gap: 12px;
+                margin-bottom: 15px;
+            }
+            
+            .form-label {
+                font-size: 0.85rem;
+                margin-bottom: 4px;
+            }
+            
+            .form-input,
+            .form-textarea,
+            select.form-input {
+                padding: 8px 10px;
+                font-size: 16px;
+                border-radius: 6px;
+            }
+            
+            .form-textarea {
+                min-height: 70px;
+            }
+            
+            .char-count {
+                font-size: 0.7rem;
+            }
+            
+            .form-actions {
+                gap: 8px;
+                margin-top: 15px;
+                padding-top: 12px;
+            }
+            
+            .form-actions .btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                min-height: 40px;
+            }
+            
+            .calendar-sidebar {
+                padding: 10px;
+            }
+            
+            .week-info {
+                margin-top: 15px;
+                padding: 10px;
+            }
+            
+            .week-info h4 {
+                font-size: 1rem;
+                margin-bottom: 3px;
+            }
+            
+            .week-info p {
+                font-size: 0.8rem;
+            }
+            
+            .week-view {
+                grid-template-columns: repeat(7, minmax(30px, 1fr));
+            }
+            
+            .day-column {
+                padding: 1px;
+                min-height: 45px;
+                min-width: 30px;
+            }
+            
+            .day-header {
+                padding: 1px;
+                font-size: 0.55rem;
+            }
+            
+            .total-time {
+                font-size: 0.5rem;
+            }
+            
+            .selected-day-section {
+                margin-top: 20px;
+            }
+            
+            .entries-table th,
+            .entries-table td {
+                padding: 6px;
+                font-size: 0.75rem;
+            }
+        }
     </style>
 
     <script>
