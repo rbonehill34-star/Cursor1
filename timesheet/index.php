@@ -263,15 +263,19 @@ for ($i = -12; $i <= 12; $i++) {
                                             <i class="fas fa-users"></i>
                                             Client *
                                         </label>
-                                        <select id="client_id" name="client_id" class="form-input" required>
-                                            <option value="">Select a client</option>
-                                            <?php foreach ($clients as $client): ?>
-                                                <option value="<?php echo $client['id']; ?>" 
-                                                        <?php echo ($editing_entry ? $editing_entry['client_id'] : ($copied_values ? $copied_values['client_id'] : ($client_id ?? ''))) == $client['id'] ? 'selected' : ''; ?>>
-                                                    <?php echo htmlspecialchars($client['name']); ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <div class="custom-dropdown">
+                                            <input type="text" id="client_search" class="form-input client-search" 
+                                                   placeholder="Search clients..." autocomplete="off">
+                                            <select id="client_id" name="client_id" class="form-input client-select" required>
+                                                <option value="">Select a client</option>
+                                                <?php foreach ($clients as $client): ?>
+                                                    <option value="<?php echo $client['id']; ?>" 
+                                                            <?php echo ($editing_entry ? $editing_entry['client_id'] : ($copied_values ? $copied_values['client_id'] : ($client_id ?? ''))) == $client['id'] ? 'selected' : ''; ?>>
+                                                        <?php echo htmlspecialchars($client['name']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
@@ -383,6 +387,36 @@ for ($i = -12; $i <= 12; $i++) {
             padding-top: 20px !important;
         }
         
+        /* Custom dropdown styles */
+        .custom-dropdown {
+            position: relative;
+        }
+        
+        .client-search {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: white;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .client-select {
+            margin-top: 40px;
+            border-radius: 0 0 8px 8px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .client-select:focus {
+            border-top-color: #667eea;
+        }
+        
+        .client-search:focus + .client-select {
+            border-top-color: #667eea;
+        }
+        
         /* Mobile optimizations for timesheet form */
         @media (max-width: 768px) {
             .calendar-container {
@@ -431,6 +465,17 @@ for ($i = -12; $i <= 12; $i++) {
                 padding: 10px 12px;
                 font-size: 16px; /* Prevents zoom on iOS */
                 border-radius: 8px;
+            }
+            
+            .client-search {
+                padding: 10px 12px;
+                font-size: 16px;
+                border-radius: 6px 6px 0 0;
+            }
+            
+            .client-select {
+                margin-top: 35px;
+                border-radius: 0 0 6px 6px;
             }
             
             .form-textarea {
@@ -521,6 +566,17 @@ for ($i = -12; $i <= 12; $i++) {
                 border-radius: 6px;
             }
             
+            .client-search {
+                padding: 8px 10px;
+                font-size: 16px;
+                border-radius: 5px 5px 0 0;
+            }
+            
+            .client-select {
+                margin-top: 30px;
+                border-radius: 0 0 5px 5px;
+            }
+            
             .form-textarea {
                 min-height: 70px;
             }
@@ -606,6 +662,50 @@ for ($i = -12; $i <= 12; $i++) {
         
         // Initialize character count
         charCount.textContent = description.value.length + '/100 characters';
+        
+        // Client search functionality
+        const clientSearch = document.getElementById('client_search');
+        const clientSelect = document.getElementById('client_id');
+        const allClients = Array.from(clientSelect.options);
+        
+        clientSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            // Clear all options except the first one
+            clientSelect.innerHTML = '<option value="">Select a client</option>';
+            
+            // Filter and add matching clients
+            allClients.forEach(option => {
+                if (option.value && option.text.toLowerCase().includes(searchTerm)) {
+                    clientSelect.appendChild(option.cloneNode(true));
+                }
+            });
+            
+            // If search is cleared, show all clients
+            if (searchTerm === '') {
+                allClients.forEach(option => {
+                    if (option.value) {
+                        clientSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+            }
+        });
+        
+        // Update search box when client is selected from dropdown
+        clientSelect.addEventListener('change', function() {
+            if (this.value) {
+                const selectedOption = this.options[this.selectedIndex];
+                clientSearch.value = selectedOption.text;
+            } else {
+                clientSearch.value = '';
+            }
+        });
+        
+        // Initialize search box with selected client name
+        if (clientSelect.value) {
+            const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+            clientSearch.value = selectedOption.text;
+        }
         
         // Edit entry function
         function editEntry(entryId) {
@@ -713,6 +813,11 @@ for ($i = -12; $i <= 12; $i++) {
                     document.getElementById('time_spent').value = entry.time_spent;
                     document.getElementById('description').value = entry.description || '';
                     
+                    // Update client search box with selected client name
+                    const clientSelect = document.getElementById('client_id');
+                    const selectedOption = clientSelect.options[clientSelect.selectedIndex];
+                    document.getElementById('client_search').value = selectedOption.text;
+                    
                     // Store the entry ID for update functionality
                     document.getElementById('entry_id').value = entryId;
                     
@@ -744,6 +849,7 @@ for ($i = -12; $i <= 12; $i++) {
         function clearForm() {
             document.getElementById('date').value = '';
             document.getElementById('client_id').value = '';
+            document.getElementById('client_search').value = '';
             document.getElementById('task_id').value = '';
             document.getElementById('time_spent').value = '';
             document.getElementById('description').value = '';
