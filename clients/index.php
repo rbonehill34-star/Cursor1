@@ -124,7 +124,12 @@ try {
                             <tbody id="clientsTableBody">
                                 <?php foreach ($clients as $client): ?>
                                     <tr class="clickable-row" data-href="edit?id=<?php echo $client['id']; ?>" style="cursor: pointer;">
-                                        <td><?php echo htmlspecialchars($client['name']); ?></td>
+                                        <td title="<?php echo htmlspecialchars($client['name']); ?>">
+                                            <?php 
+                                            $clientName = $client['name'];
+                                            echo htmlspecialchars(strlen($clientName) > 20 ? substr($clientName, 0, 20) . '...' : $clientName);
+                                            ?>
+                                        </td>
                                         <td><?php echo htmlspecialchars($client['type'] ?? 'Company'); ?></td>
                                         <td><strong><?php echo htmlspecialchars($client['reference']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($client['contact_forename'] ?? '-'); ?></td>
@@ -149,6 +154,118 @@ try {
         /* Reduce gap between header and page content */
         .admin-section {
             padding-top: 20px !important;
+        }
+        
+        /* Client column optimization */
+        .data-table th:nth-child(1),
+        .data-table td:nth-child(1) {
+            max-width: 150px;
+            min-width: 120px;
+            width: 120px;
+        }
+        
+        .data-table th:nth-child(2),
+        .data-table td:nth-child(2) {
+            max-width: 100px;
+            min-width: 80px;
+            width: 100px;
+        }
+        
+        .data-table th:nth-child(3),
+        .data-table td:nth-child(3) {
+            max-width: 100px;
+            min-width: 80px;
+            width: 100px;
+        }
+        
+        .data-table th:nth-child(4),
+        .data-table td:nth-child(4) {
+            max-width: 120px;
+            min-width: 100px;
+            width: 120px;
+        }
+        
+        .data-table th:nth-child(5),
+        .data-table td:nth-child(5) {
+            max-width: 120px;
+            min-width: 100px;
+            width: 120px;
+        }
+        
+        @media (max-width: 768px) {
+            /* Mobile column optimizations */
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                max-width: 100px;
+                min-width: 80px;
+                width: 100px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) {
+                max-width: 100px;
+                min-width: 80px;
+                width: 100px;
+            }
+            
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
+                max-width: 100px;
+                min-width: 80px;
+                width: 100px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            /* Extra small mobile optimizations */
+            .data-table th:nth-child(1),
+            .data-table td:nth-child(1) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(2),
+            .data-table td:nth-child(2) {
+                max-width: 70px;
+                min-width: 50px;
+                width: 70px;
+            }
+            
+            .data-table th:nth-child(3),
+            .data-table td:nth-child(3) {
+                max-width: 70px;
+                min-width: 50px;
+                width: 70px;
+            }
+            
+            .data-table th:nth-child(4),
+            .data-table td:nth-child(4) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
+            
+            .data-table th:nth-child(5),
+            .data-table td:nth-child(5) {
+                max-width: 80px;
+                min-width: 60px;
+                width: 80px;
+            }
         }
     </style>
 
