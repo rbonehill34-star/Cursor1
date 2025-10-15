@@ -84,10 +84,11 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             $stmt = $pdo->prepare("
                 SELECT j.*, j.period_end, c.name as client_name, c.email as client_email, c.contact_forename, 
                        CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact,
-                       t.task_name
+                       t.task_name, u.user_signature, u.username
                 FROM jobs j
                 LEFT JOIN clients c ON j.client_id = c.id
                 LEFT JOIN tasks t ON j.task_id = t.id
+                LEFT JOIN users u ON j.preparer_id = u.id
                 WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
             ");
             $stmt->execute([$job_id]);
@@ -120,15 +121,15 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                     $default_templates = [
                         'Year End' => [
                             'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
                         ],
                         'VAT returns' => [
                             'subject' => 'Information needed for VAT Return for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nKind regards\nRob"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
                         ],
                         'Other default' => [
                             'subject' => 'Information needed for {task_name} for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nKind regards\nRob"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
                         ]
                     ];
                     $template = $default_templates[$template_name] ?? $default_templates['Other default'];
@@ -137,17 +138,19 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 // Prepare email content with placeholders
                 $period_end_date = $job['period_end'] ? date('d/m/Y', strtotime($job['period_end'])) : 'TBD';
                 $contact_forename = $job['contact_forename'] ?: 'there';
+                $user_signature = $job['user_signature'] ?: 'Rob';
+                $username = $job['username'] ?: 'admin';
                 
                 // Replace placeholders in subject and body
                 $subject = str_replace(
-                    ['{period_end}', '{contact_forename}', '{task_name}'],
-                    [$period_end_date, $contact_forename, $task_name],
+                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}'],
+                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username],
                     $template['subject']
                 );
                 
                 $body = str_replace(
-                    ['{period_end}', '{contact_forename}', '{task_name}'],
-                    [$period_end_date, $contact_forename, $task_name],
+                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}'],
+                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username],
                     $template['body']
                 );
                 
