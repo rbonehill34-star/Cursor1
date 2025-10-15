@@ -102,21 +102,21 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 $stmt->execute([$_SESSION['user_id']]);
                 $current_user = $stmt->fetch();
                 
-                // Get email template based on task name
-                $task_name = $job['task_name'] ?? 'Other default';
+                // Get email template based on task ID
+                $task_id = $job['task_id'] ?? null;
+                $task_name = $job['task_name'] ?? 'Other';
                 
-                // Map task names to template names
+                // Map specific task IDs to email templates
+                // ID 1 = Year End, ID 2 = VAT Returns, others = Other default
                 $template_mapping = [
-                    'Year End' => 'Year End',
-                    'VAT returns' => 'VAT returns',
-                    'VAT return' => 'VAT returns',
-                    'VAT' => 'VAT returns'
+                    1 => 'Year End',      // Year End
+                    2 => 'VAT Returns',   // VAT Returns
                 ];
                 
-                $template_name = $template_mapping[$task_name] ?? 'Other default';
+                $template_name = $template_mapping[$task_id] ?? 'Other default';
                 
                 // Get email template
-                $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE task_name = ?");
+                $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE template_name = ?");
                 $stmt->execute([$template_name]);
                 $template = $stmt->fetch();
                 

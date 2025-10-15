@@ -23,28 +23,28 @@ $messageType = '';
 
 // Handle form submission for updating email templates
 if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_template') {
-    $task_name = $_POST['task_name'] ?? '';
+    $template_name = $_POST['template_name'] ?? '';
     $subject = trim($_POST['subject'] ?? '');
     $body = trim($_POST['body'] ?? '');
     
-    if (empty($task_name) || empty($subject) || empty($body)) {
+    if (empty($template_name) || empty($subject) || empty($body)) {
         $message = 'All fields are required.';
         $messageType = 'error';
     } else {
         try {
             // Check if template exists
-            $stmt = $pdo->prepare("SELECT id FROM email_templates WHERE task_name = ?");
-            $stmt->execute([$task_name]);
+            $stmt = $pdo->prepare("SELECT id FROM email_templates WHERE template_name = ?");
+            $stmt->execute([$template_name]);
             $existing = $stmt->fetch();
             
             if ($existing) {
                 // Update existing template
-                $stmt = $pdo->prepare("UPDATE email_templates SET subject = ?, body = ?, updated_at = NOW() WHERE task_name = ?");
-                $stmt->execute([$subject, $body, $task_name]);
+                $stmt = $pdo->prepare("UPDATE email_templates SET subject = ?, body = ?, updated_at = NOW() WHERE template_name = ?");
+                $stmt->execute([$subject, $body, $template_name]);
             } else {
                 // Insert new template
-                $stmt = $pdo->prepare("INSERT INTO email_templates (task_name, subject, body, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-                $stmt->execute([$task_name, $subject, $body]);
+                $stmt = $pdo->prepare("INSERT INTO email_templates (template_name, subject, body, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+                $stmt->execute([$template_name, $subject, $body]);
             }
             
             $message = 'Email template updated successfully!';
@@ -56,16 +56,31 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_template')
     }
 }
 
-// Get selected task name from URL or default to 'Year End'
+// Get selected task from URL or default to 'Year End'
 $selected_task = $_GET['task'] ?? 'Year End';
 
-// Get available task names
-$available_tasks = ['Year End', 'VAT returns', 'Other default'];
+// Get available tasks from database
+$available_tasks = [];
+try {
+    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_order ASC, task_name ASC");
+    $tasks = $stmt->fetchAll();
+    
+    // Create mapping of task names to IDs for the dropdown
+    foreach ($tasks as $task) {
+        $available_tasks[$task['task_name']] = $task['id'];
+    }
+    
+    // Add special templates
+    $available_tasks['Other default'] = 'other';
+} catch (PDOException $e) {
+    // Fallback if database query fails
+    $available_tasks = ['Year End' => 1, 'VAT Returns' => 2, 'Other default' => 'other'];
+}
 
 // Get current template for selected task
 $current_template = null;
 try {
-    $stmt = $pdo->prepare("SELECT * FROM email_templates WHERE task_name = ?");
+    $stmt = $pdo->prepare("SELECT * FROM email_templates WHERE template_name = ?");
     $stmt->execute([$selected_task]);
     $current_template = $stmt->fetch();
 } catch (PDOException $e) {
@@ -150,9 +165,9 @@ $template_body = $current_template['body'] ?? $default_templates[$selected_task]
                     <div class="form-group">
                         <label for="task-selector">Select Task Type:</label>
                         <select id="task-selector" class="form-control" onchange="changeTask(this.value)">
-                            <?php foreach ($available_tasks as $task): ?>
-                                <option value="<?php echo htmlspecialchars($task); ?>" <?php echo $selected_task === $task ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($task); ?>
+                            <?php foreach ($available_tasks as $task_name => $task_id): ?>
+                                <option value="<?php echo htmlspecialchars($task_name); ?>" <?php echo $selected_task === $task_name ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($task_name); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
@@ -163,7 +178,7 @@ $template_body = $current_template['body'] ?? $default_templates[$selected_task]
                 <div class="email-template-editor">
                     <form method="POST" action="">
                         <input type="hidden" name="action" value="update_template">
-                        <input type="hidden" name="task_name" value="<?php echo htmlspecialchars($selected_task); ?>">
+                        <input type="hidden" name="template_name" value="<?php echo htmlspecialchars($selected_task); ?>">
                         
                         <div class="form-group">
                             <label for="subject">Email Subject:</label>
