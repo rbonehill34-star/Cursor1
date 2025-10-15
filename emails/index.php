@@ -56,26 +56,15 @@ if ($_POST && isset($_POST['action']) && $_POST['action'] === 'update_template')
     }
 }
 
-// Get selected task from URL or default to 'Year End'
-$selected_task = $_GET['task'] ?? 'Year End';
+// Get selected task from URL or default to 'Company accounts'
+$selected_task = $_GET['task'] ?? 'Company accounts';
 
-// Get available tasks from database
-$available_tasks = [];
-try {
-    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_order ASC, task_name ASC");
-    $tasks = $stmt->fetchAll();
-    
-    // Create mapping of task names to IDs for the dropdown
-    foreach ($tasks as $task) {
-        $available_tasks[$task['task_name']] = $task['id'];
-    }
-    
-    // Add special templates
-    $available_tasks['Other default'] = 'other';
-} catch (PDOException $e) {
-    // Fallback if database query fails
-    $available_tasks = ['Year End' => 1, 'VAT Returns' => 2, 'Other default' => 'other'];
-}
+// Get available tasks - only show the 3 working templates
+$available_tasks = [
+    'Company accounts' => 1,    // Maps to task ID 1 (Year End)
+    'VAT Return' => 2,          // Maps to task ID 2 (VAT Returns)  
+    'Other default' => 'other'  // Special template for all other tasks
+];
 
 // Get current template for selected task
 $current_template = null;
@@ -89,11 +78,11 @@ try {
 
 // Set default templates if they don't exist
 $default_templates = [
-    'Year End' => [
+    'Company accounts' => [
         'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
         'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
     ],
-    'VAT returns' => [
+    'VAT Return' => [
         'subject' => 'Information needed for VAT Return for the Period Ended {period_end}',
         'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
     ],
