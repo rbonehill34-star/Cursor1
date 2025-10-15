@@ -25,7 +25,7 @@ if (isset($_GET['message']) && $_GET['message'] === 'deleted') {
 
 // Get all users
 try {
-    $stmt = $pdo->query("SELECT id, username, password, account_type, created_at FROM users ORDER BY id ASC");
+    $stmt = $pdo->query("SELECT id, username, password, account_type, user_forename, user_surname, user_internal, user_signature, created_at FROM users ORDER BY id ASC");
     $users = $stmt->fetchAll();
 } catch (PDOException $e) {
     $users = [];
@@ -102,8 +102,8 @@ try {
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th>Internal Name</th>
                                     <th>Username</th>
-                                    <th>Password</th>
                                     <th>Account Type</th>
                                 </tr>
                             </thead>
@@ -111,13 +111,13 @@ try {
                                 <?php foreach ($users as $user): ?>
                                     <tr class="user-row" data-user-id="<?php echo $user['id']; ?>" style="cursor: pointer;">
                                         <td>
+                                            <strong><?php echo htmlspecialchars($user['user_internal'] ?? ''); ?></strong>
+                                        </td>
+                                        <td>
                                             <strong><?php echo htmlspecialchars($user['username']); ?></strong>
                                             <?php if ($user['id'] == $_SESSION['user_id']): ?>
                                                 <span class="badge badge-primary">You</span>
                                             <?php endif; ?>
-                                        </td>
-                                        <td>
-                                            <span style="color: #6c757d; letter-spacing: 2px;">●●●●●●●●</span>
                                         </td>
                                         <td>
                                             <?php

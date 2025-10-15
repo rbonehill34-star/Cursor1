@@ -10,6 +10,10 @@ if ($_POST) {
     $password = trim($_POST['password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
     $account_type = $_POST['account_type'] ?? '';
+    $user_forename = trim($_POST['user_forename'] ?? '');
+    $user_surname = trim($_POST['user_surname'] ?? '');
+    $user_internal = trim($_POST['user_internal'] ?? '');
+    $user_signature = trim($_POST['user_signature'] ?? '');
     
     // Validation
     if (empty($username) || empty($password) || empty($confirm_password) || empty($account_type)) {
@@ -39,8 +43,8 @@ if ($_POST) {
             } else {
                 // Create new user
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("INSERT INTO users (username, password, account_type, created_at) VALUES (?, ?, ?, NOW())");
-                $stmt->execute([$username, $hashed_password, $account_type]);
+                $stmt = $pdo->prepare("INSERT INTO users (username, password, account_type, user_forename, user_surname, user_internal, user_signature, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+                $stmt->execute([$username, $hashed_password, $account_type, $user_forename, $user_surname, $user_internal, $user_signature]);
                 
                 $message = 'Account created successfully! You can now login.';
                 $messageType = 'success';
@@ -52,7 +56,7 @@ if ($_POST) {
                 }
                 
                 // Clear form data
-                $username = $password = $confirm_password = $account_type = '';
+                $username = $password = $confirm_password = $account_type = $user_forename = $user_surname = $user_internal = $user_signature = '';
             }
         } catch (PDOException $e) {
             $message = 'Registration failed. Please try again.';
@@ -151,6 +155,46 @@ if ($_POST) {
                             </label>
                             <input type="password" id="confirm_password" name="confirm_password" class="form-input" 
                                    placeholder="Confirm your password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_forename" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Forename
+                            </label>
+                            <input type="text" id="user_forename" name="user_forename" class="form-input" 
+                                   value="<?php echo htmlspecialchars($user_forename ?? ''); ?>" 
+                                   placeholder="Enter forename">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_surname" class="form-label">
+                                <i class="fas fa-user"></i>
+                                Surname
+                            </label>
+                            <input type="text" id="user_surname" name="user_surname" class="form-input" 
+                                   value="<?php echo htmlspecialchars($user_surname ?? ''); ?>" 
+                                   placeholder="Enter surname">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_internal" class="form-label">
+                                <i class="fas fa-building"></i>
+                                Internal Name
+                            </label>
+                            <input type="text" id="user_internal" name="user_internal" class="form-input" 
+                                   value="<?php echo htmlspecialchars($user_internal ?? ''); ?>" 
+                                   placeholder="Enter internal name">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="user_signature" class="form-label">
+                                <i class="fas fa-signature"></i>
+                                Email Signature
+                            </label>
+                            <input type="text" id="user_signature" name="user_signature" class="form-input" 
+                                   value="<?php echo htmlspecialchars($user_signature ?? ''); ?>" 
+                                   placeholder="Enter email signature (e.g., Sam)">
                         </div>
 
                         <div class="form-group">

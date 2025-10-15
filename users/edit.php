@@ -20,7 +20,7 @@ $user_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 // Check if user exists
 try {
-    $stmt = $pdo->prepare("SELECT id, username, account_type, created_at FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT id, username, account_type, user_forename, user_surname, user_internal, user_signature, created_at FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch();
     
@@ -57,6 +57,10 @@ if ($_POST) {
             $username = trim($_POST['username'] ?? '');
             $password = trim($_POST['password'] ?? '');
             $new_account_type = $_POST['account_type'] ?? '';
+            $user_forename = trim($_POST['user_forename'] ?? '');
+            $user_surname = trim($_POST['user_surname'] ?? '');
+            $user_internal = trim($_POST['user_internal'] ?? '');
+            $user_signature = trim($_POST['user_signature'] ?? '');
             
             // Validation
             if (empty($username)) {
@@ -85,12 +89,12 @@ if ($_POST) {
                         if (!empty($password)) {
                             // Update with new password
                             $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                            $stmt = $pdo->prepare("UPDATE users SET username = ?, password = ?, account_type = ? WHERE id = ?");
-                            $stmt->execute([$username, $hashed_password, $new_account_type, $user_id]);
+                            $stmt = $pdo->prepare("UPDATE users SET username = ?, password = ?, account_type = ?, user_forename = ?, user_surname = ?, user_internal = ?, user_signature = ? WHERE id = ?");
+                            $stmt->execute([$username, $hashed_password, $new_account_type, $user_forename, $user_surname, $user_internal, $user_signature, $user_id]);
                         } else {
                             // Update without changing password
-                            $stmt = $pdo->prepare("UPDATE users SET username = ?, account_type = ? WHERE id = ?");
-                            $stmt->execute([$username, $new_account_type, $user_id]);
+                            $stmt = $pdo->prepare("UPDATE users SET username = ?, account_type = ?, user_forename = ?, user_surname = ?, user_internal = ?, user_signature = ? WHERE id = ?");
+                            $stmt->execute([$username, $new_account_type, $user_forename, $user_surname, $user_internal, $user_signature, $user_id]);
                         }
                         
                         // If user changed their own account type, update session
@@ -103,7 +107,7 @@ if ($_POST) {
                         $messageType = 'success';
                         
                         // Refresh user data
-                        $stmt = $pdo->prepare("SELECT id, username, account_type, created_at FROM users WHERE id = ?");
+                        $stmt = $pdo->prepare("SELECT id, username, account_type, user_forename, user_surname, user_internal, user_signature, created_at FROM users WHERE id = ?");
                         $stmt->execute([$user_id]);
                         $user = $stmt->fetch();
                     }
@@ -201,6 +205,50 @@ if ($_POST) {
                                 <small style="color: #6c757d; font-size: 12px; margin-top: 4px; display: block;">
                                     Only enter a password if you want to change it. Minimum 6 characters.
                                 </small>
+                            </div>
+
+                            <!-- Forename -->
+                            <div class="form-group">
+                                <label for="user_forename" class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Forename
+                                </label>
+                                <input type="text" id="user_forename" name="user_forename" class="form-input" 
+                                       value="<?php echo htmlspecialchars($user['user_forename'] ?? ''); ?>" 
+                                       placeholder="Enter forename">
+                            </div>
+
+                            <!-- Surname -->
+                            <div class="form-group">
+                                <label for="user_surname" class="form-label">
+                                    <i class="fas fa-user"></i>
+                                    Surname
+                                </label>
+                                <input type="text" id="user_surname" name="user_surname" class="form-input" 
+                                       value="<?php echo htmlspecialchars($user['user_surname'] ?? ''); ?>" 
+                                       placeholder="Enter surname">
+                            </div>
+
+                            <!-- Internal Name -->
+                            <div class="form-group">
+                                <label for="user_internal" class="form-label">
+                                    <i class="fas fa-building"></i>
+                                    Internal Name
+                                </label>
+                                <input type="text" id="user_internal" name="user_internal" class="form-input" 
+                                       value="<?php echo htmlspecialchars($user['user_internal'] ?? ''); ?>" 
+                                       placeholder="Enter internal name">
+                            </div>
+
+                            <!-- Email Signature -->
+                            <div class="form-group">
+                                <label for="user_signature" class="form-label">
+                                    <i class="fas fa-signature"></i>
+                                    Email Signature
+                                </label>
+                                <input type="text" id="user_signature" name="user_signature" class="form-input" 
+                                       value="<?php echo htmlspecialchars($user['user_signature'] ?? ''); ?>" 
+                                       placeholder="Enter email signature (e.g., Sam)">
                             </div>
 
                             <!-- Account Type -->
