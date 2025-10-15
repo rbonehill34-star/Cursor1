@@ -106,6 +106,9 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 $task_id = $job['task_id'] ?? null;
                 $task_name = $job['task_name'] ?? 'Other';
                 
+                // Debug logging for live server
+                error_log("EMAIL DEBUG - Job ID: $job_id, Task ID: $task_id, Task Name: '$task_name'");
+                
                 // Map specific task IDs to email templates
                 // ID 1 = Company accounts, ID 2 = VAT Return, others = Other default
                 $template_mapping = [
@@ -115,10 +118,30 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 
                 $template_name = $template_mapping[$task_id] ?? 'Other default';
                 
+                // Fallback: If task_id mapping fails, try task_name mapping for backward compatibility
+                if ($template_name === 'Other default' && !empty($task_name)) {
+                    $task_name_mapping = [
+                        'Year End' => 'Company accounts',
+                        'Company accounts' => 'Company accounts',
+                        'VAT Returns' => 'VAT Return',
+                        'VAT Return' => 'VAT Return',
+                        'VAT' => 'VAT Return'
+                    ];
+                    
+                    if (isset($task_name_mapping[$task_name])) {
+                        $template_name = $task_name_mapping[$task_name];
+                        error_log("EMAIL DEBUG - Fallback: Using task name mapping '$task_name' -> '$template_name'");
+                    }
+                }
+                
+                error_log("EMAIL DEBUG - Final template name: '$template_name'");
+                
                 // Get email template
                 $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE template_name = ?");
                 $stmt->execute([$template_name]);
                 $template = $stmt->fetch();
+                
+                error_log("EMAIL DEBUG - Template lookup result: " . ($template ? 'FOUND' : 'NOT FOUND'));
                 
                 // Use default template if not found
                 if (!$template) {
