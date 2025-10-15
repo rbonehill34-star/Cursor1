@@ -11,32 +11,16 @@ if (!isset($_SESSION['user_id'])) {
 $message = '';
 $messageType = '';
 
-// Handle delete action
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    try {
-        // Check if task is being used in timesheet
-        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM timesheet WHERE task_id = ?");
-        $stmt->execute([$_GET['delete']]);
-        $usage = $stmt->fetch();
-        
-        if ($usage['count'] > 0) {
-            $message = 'Cannot delete task - it is being used in timesheet entries.';
-            $messageType = 'error';
-        } else {
-            $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = ?");
-            $stmt->execute([$_GET['delete']]);
-            $message = 'Task deleted successfully.';
-            $messageType = 'success';
-        }
-    } catch (PDOException $e) {
-        $message = 'Failed to delete task.';
-        $messageType = 'error';
-    }
+// Handle delete success message from edit page
+if (isset($_GET['deleted'])) {
+    $message = 'Task deleted successfully.';
+    $messageType = 'success';
 }
+
 
 // Get all tasks
 try {
-    $stmt = $pdo->query("SELECT t.*, COUNT(ts.id) as usage_count FROM tasks t LEFT JOIN timesheet ts ON t.id = ts.task_id GROUP BY t.id ORDER BY t.task_name ASC");
+    $stmt = $pdo->query("SELECT t.*, COUNT(ts.id) as usage_count FROM tasks t LEFT JOIN timesheet ts ON t.id = ts.task_id GROUP BY t.id ORDER BY t.task_order ASC, t.task_name ASC");
     $tasks = $stmt->fetchAll();
 } catch (PDOException $e) {
     $tasks = [];
@@ -113,16 +97,18 @@ try {
                         <table class="data-table">
                             <thead>
                                 <tr>
+                                    <th>Order</th>
                                     <th>Task Name</th>
                                     <th>Description</th>
                                     <th>Timesheet Usage</th>
-                                    <th>Created</th>
-                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($tasks as $task): ?>
-                                    <tr>
+                                    <tr class="clickable-row" data-href="edit?id=<?php echo $task['id']; ?>" style="cursor: pointer;">
+                                        <td>
+                                            <span class="order-badge"><?php echo $task['task_order']; ?></span>
+                                        </td>
                                         <td><strong><?php echo htmlspecialchars($task['task_name']); ?></strong></td>
                                         <td><?php echo htmlspecialchars($task['description'] ?? '-'); ?></td>
                                         <td>
@@ -130,23 +116,6 @@ try {
                                                 <i class="fas fa-clock"></i>
                                                 <?php echo $task['usage_count']; ?> entries
                                             </span>
-                                        </td>
-                                        <td><?php echo date('M j, Y', strtotime($task['created_at'])); ?></td>
-                                        <td>
-                                            <a href="edit?id=<?php echo $task['id']; ?>" class="btn btn-action btn-edit">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            <?php if ($task['usage_count'] == 0): ?>
-                                                <a href="?delete=<?php echo $task['id']; ?>" 
-                                                   class="btn btn-action btn-delete"
-                                                   onclick="return confirm('Are you sure you want to delete this task?')">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            <?php else: ?>
-                                                <span class="btn btn-action" style="background: #6c757d; cursor: not-allowed;" title="Cannot delete - task in use">
-                                                    <i class="fas fa-lock"></i>
-                                                </span>
-                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -163,5 +132,14 @@ try {
             <p>&copy; 2024 Cursor1. All rights reserved.</p>
         </div>
     </footer>
+
+    <script>
+        // Make table rows clickable
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.addEventListener('click', function() {
+                window.location.href = this.dataset.href;
+            });
+        });
+    </script>
 </body>
 </html>

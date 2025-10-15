@@ -217,7 +217,7 @@ try {
     $clients = $stmt->fetchAll();
     
     // Get tasks
-    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_name ASC");
+    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_order ASC, task_name ASC");
     $tasks = $stmt->fetchAll();
     
     // Get states

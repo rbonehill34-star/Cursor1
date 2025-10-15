@@ -110,7 +110,7 @@ try {
     $stmt = $pdo->query("SELECT id, name FROM clients ORDER BY name ASC");
     $clients = $stmt->fetchAll();
     
-    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_name ASC");
+    $stmt = $pdo->query("SELECT id, task_name FROM tasks ORDER BY task_order ASC, task_name ASC");
     $tasks = $stmt->fetchAll();
 } catch (PDOException $e) {
     $clients = $tasks = [];

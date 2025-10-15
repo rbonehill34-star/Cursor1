@@ -10,6 +10,59 @@ if (!isset($_SESSION['user_id'])) {
 
 $message = '';
 $messageType = '';
+$task = null;
+
+// Get task ID from URL
+$task_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+if (!$task_id) {
+    header('Location: index');
+    exit;
+}
+
+// Get existing task data
+try {
+    $stmt = $pdo->prepare("SELECT * FROM tasks WHERE id = ?");
+    $stmt->execute([$task_id]);
+    $task = $stmt->fetch();
+    
+    if (!$task) {
+        header('Location: index');
+        exit;
+    }
+    
+    // Check if task is being used in timesheet
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM timesheet WHERE task_id = ?");
+    $stmt->execute([$task_id]);
+    $usage = $stmt->fetch();
+    $can_delete = $usage['count'] == 0;
+} catch (PDOException $e) {
+    header('Location: index');
+    exit;
+}
+
+// Handle delete action
+if (isset($_POST['delete_task'])) {
+    if ($can_delete) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = ?");
+            $stmt->execute([$task_id]);
+            header('Location: index?deleted=1');
+            exit;
+        } catch (PDOException $e) {
+            $message = 'Failed to delete task.';
+            $messageType = 'error';
+        }
+    } else {
+        $message = 'Cannot delete task - it is being used in timesheet entries.';
+        $messageType = 'error';
+    }
+}
+
+// Initialize form data with existing task data
+$task_name = $task['task_name'];
+$task_order = $task['task_order'];
+$description = $task['description'];
 
 if ($_POST) {
     $task_name = trim($_POST['task_name'] ?? '');
@@ -22,26 +75,28 @@ if ($_POST) {
         $messageType = 'error';
     } else {
         try {
-            // Check if task name already exists
-            $stmt = $pdo->prepare("SELECT id FROM tasks WHERE task_name = ?");
-            $stmt->execute([$task_name]);
+            // Check if task name already exists (excluding current task)
+            $stmt = $pdo->prepare("SELECT id FROM tasks WHERE task_name = ? AND id != ?");
+            $stmt->execute([$task_name, $task_id]);
             
             if ($stmt->fetch()) {
                 $message = 'Task name already exists. Please choose a different one.';
                 $messageType = 'error';
             } else {
-                // Insert new task
-                $stmt = $pdo->prepare("INSERT INTO tasks (task_name, task_order, description, created_at) VALUES (?, ?, ?, NOW())");
-                $stmt->execute([$task_name, $task_order, $description ?: null]);
+                // Update task
+                $stmt = $pdo->prepare("UPDATE tasks SET task_name = ?, task_order = ?, description = ?, updated_at = NOW() WHERE id = ?");
+                $stmt->execute([$task_name, $task_order, $description ?: null, $task_id]);
                 
-                $message = 'Task added successfully!';
+                $message = 'Task updated successfully!';
                 $messageType = 'success';
                 
-                // Clear form data
-                $task_name = $task_order = $description = '';
+                // Update local task data
+                $task['task_name'] = $task_name;
+                $task['task_order'] = $task_order;
+                $task['description'] = $description;
             }
         } catch (PDOException $e) {
-            $message = 'Failed to add task. Please try again.';
+            $message = 'Failed to update task. Please try again.';
             $messageType = 'error';
         }
     }
@@ -52,7 +107,7 @@ if ($_POST) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Add Task - Cursor1</title>
+    <title>Edit Task - Cursor1</title>
     <link rel="icon" type="image/png" href="../assets/images/RJA-icon Blue.png">
     <link rel="stylesheet" href="../assets/css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,8 +117,8 @@ if ($_POST) {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo">
-                <i class="fas fa-plus"></i>
-                <span>Add Task</span>
+                <i class="fas fa-edit"></i>
+                <span>Edit Task</span>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item">
@@ -86,7 +141,7 @@ if ($_POST) {
         <div class="admin-section">
             <div class="container">
                 <div class="page-header">
-                    <h1 class="page-title">Add New Task</h1>
+                    <h1 class="page-title">Edit Task</h1>
                     <div class="page-actions">
                         <a href="index" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i>
@@ -110,7 +165,7 @@ if ($_POST) {
                                 Task Name *
                             </label>
                             <input type="text" id="task_name" name="task_name" class="form-input" 
-                                   value="<?php echo htmlspecialchars($task_name ?? ''); ?>" 
+                                   value="<?php echo htmlspecialchars($task_name); ?>" 
                                    placeholder="e.g., Bookkeeping, VAT Returns, Payroll" required>
                         </div>
 
@@ -120,7 +175,7 @@ if ($_POST) {
                                 Task Order
                             </label>
                             <input type="number" id="task_order" name="task_order" class="form-input" 
-                                   value="<?php echo htmlspecialchars($task_order ?? ''); ?>" 
+                                   value="<?php echo htmlspecialchars($task_order); ?>" 
                                    placeholder="Enter order number (e.g., 1, 2, 3...)" min="0">
                             <small class="form-help">Lower numbers appear first in lists and dropdowns</small>
                         </div>
@@ -131,13 +186,13 @@ if ($_POST) {
                                 Description
                             </label>
                             <textarea id="description" name="description" class="form-textarea" rows="4" 
-                                      placeholder="Optional description of the task"><?php echo htmlspecialchars($description ?? ''); ?></textarea>
+                                      placeholder="Optional description of the task"><?php echo htmlspecialchars($description); ?></textarea>
                         </div>
 
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="fas fa-save"></i>
-                                Add Task
+                                Save Changes
                             </button>
                             <a href="index" class="btn btn-secondary">
                                 <i class="fas fa-times"></i>
@@ -145,6 +200,34 @@ if ($_POST) {
                             </a>
                         </div>
                     </form>
+                    
+                    <?php if ($can_delete): ?>
+                        <div class="danger-section" style="margin-top: 30px; padding: 20px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px;">
+                            <h3 style="color: #dc2626; margin-bottom: 10px; font-size: 1.1rem;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Danger Zone
+                            </h3>
+                            <p style="margin-bottom: 15px; color: #6b7280;">
+                                Deleting this task will permanently remove it from the system. This action cannot be undone.
+                            </p>
+                            <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this task? This action cannot be undone.');">
+                                <button type="submit" name="delete_task" class="btn btn-delete" style="background: #dc2626;">
+                                    <i class="fas fa-trash"></i>
+                                    Delete Task
+                                </button>
+                            </form>
+                        </div>
+                    <?php else: ?>
+                        <div class="info-section" style="margin-top: 30px; padding: 20px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px;">
+                            <h3 style="color: #0369a1; margin-bottom: 10px; font-size: 1.1rem;">
+                                <i class="fas fa-info-circle"></i>
+                                Task in Use
+                            </h3>
+                            <p style="margin-bottom: 0; color: #6b7280;">
+                                This task cannot be deleted because it is being used in timesheet entries.
+                            </p>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

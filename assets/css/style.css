@@ -1131,6 +1131,22 @@ select.form-input {
     font-weight: 500;
 }
 
+/* Order Badge */
+.order-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3e5f5;
+    color: #7b1fa2;
+    padding: 6px 10px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 32px;
+    height: 32px;
+    border: 2px solid #e1bee7;
+}
+
 /* Week View Section */
 .week-view-section {
     margin-top: 30px;
