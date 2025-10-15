@@ -236,30 +236,32 @@ if (isset($_GET['logout'])) {
         
         @media (max-width: 480px) {
             .settings-portal-card {
-                flex: 0 0 calc(50% - 4px); /* 1/2 minus gap */
-                max-width: calc(50% - 4px);
-                padding: 10px 6px;
-                min-height: 100px;
+                flex: 0 0 calc(50% - 7.5px); /* 1/2 minus gap */
+                max-width: calc(50% - 7.5px);
+                padding: 8px 4px;
+                min-height: 90px;
             }
             
             .settings-portal-icon {
-                font-size: 1.2rem;
-                margin-bottom: 4px;
-            }
-            
-            .settings-portal-card h3 {
-                font-size: 0.75rem;
+                font-size: 1.1rem;
                 margin-bottom: 3px;
             }
             
+            .settings-portal-card h3 {
+                font-size: 0.7rem;
+                margin-bottom: 2px;
+                line-height: 1.1;
+            }
+            
             .settings-portal-card p {
-                font-size: 0.65rem;
-                margin-bottom: 6px;
+                font-size: 0.6rem;
+                margin-bottom: 5px;
+                line-height: 1.2;
             }
             
             .settings-portal-card .btn {
-                padding: 5px 6px;
-                font-size: 0.65rem;
+                padding: 4px 5px;
+                font-size: 0.6rem;
             }
         }
     </style>
