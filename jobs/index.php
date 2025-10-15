@@ -82,9 +82,12 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
         try {
             // Get job and client details for email
             $stmt = $pdo->prepare("
-                SELECT j.*, j.period_end, c.name as client_name, c.email as client_email, c.contact_forename, CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact
+                SELECT j.*, j.period_end, c.name as client_name, c.email as client_email, c.contact_forename, 
+                       CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact,
+                       t.task_name
                 FROM jobs j
                 LEFT JOIN clients c ON j.client_id = c.id
+                LEFT JOIN tasks t ON j.task_id = t.id
                 WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
             ");
             $stmt->execute([$job_id]);
@@ -94,11 +97,59 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             error_log("DEBUG - Processing job ID: $job_id, Found job: " . print_r($job, true));
             
             if ($job && !empty($job['client_email'])) {
-                // Prepare email content
+                // Get email template based on task name
+                $task_name = $job['task_name'] ?? 'Other default';
+                
+                // Map task names to template names
+                $template_mapping = [
+                    'Year End' => 'Year End',
+                    'VAT returns' => 'VAT returns',
+                    'VAT return' => 'VAT returns',
+                    'VAT' => 'VAT returns'
+                ];
+                
+                $template_name = $template_mapping[$task_name] ?? 'Other default';
+                
+                // Get email template
+                $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE task_name = ?");
+                $stmt->execute([$template_name]);
+                $template = $stmt->fetch();
+                
+                // Use default template if not found
+                if (!$template) {
+                    $default_templates = [
+                        'Year End' => [
+                            'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob"
+                        ],
+                        'VAT returns' => [
+                            'subject' => 'Information needed for VAT Return for the Period Ended {period_end}',
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nKind regards\nRob"
+                        ],
+                        'Other default' => [
+                            'subject' => 'Information needed for {task_name} for the Period Ended {period_end}',
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nKind regards\nRob"
+                        ]
+                    ];
+                    $template = $default_templates[$template_name] ?? $default_templates['Other default'];
+                }
+                
+                // Prepare email content with placeholders
                 $period_end_date = $job['period_end'] ? date('d/m/Y', strtotime($job['period_end'])) : 'TBD';
-                $subject = "Information needed for Accounts for the Period Ended " . $period_end_date;
-                $greeting = $job['contact_forename'] ? "Hi " . $job['contact_forename'] : "Dear " . $job['client_contact'];
-                $body = $greeting . "\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\nRob";
+                $contact_forename = $job['contact_forename'] ?: 'there';
+                
+                // Replace placeholders in subject and body
+                $subject = str_replace(
+                    ['{period_end}', '{contact_forename}', '{task_name}'],
+                    [$period_end_date, $contact_forename, $task_name],
+                    $template['subject']
+                );
+                
+                $body = str_replace(
+                    ['{period_end}', '{contact_forename}', '{task_name}'],
+                    [$period_end_date, $contact_forename, $task_name],
+                    $template['body']
+                );
                 
                 // Store email details for display
                 $prepared_emails[] = [

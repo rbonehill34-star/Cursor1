@@ -94,6 +94,19 @@ if (isset($_GET['logout'])) {
                     </div>
                     <?php endif; ?>
 
+                    <!-- Emails - Available to all users -->
+                    <div class="settings-portal-card">
+                        <div class="settings-portal-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3>Emails</h3>
+                        <p>Design and customize email templates for different task types</p>
+                        <a href="../emails" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Manage Emails
+                        </a>
+                    </div>
+
                     <!-- Import Data - Available to all users -->
                     <div class="settings-portal-card">
                         <div class="settings-portal-icon">
