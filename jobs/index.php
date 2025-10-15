@@ -106,6 +106,9 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 $task_id = $job['task_id'] ?? null;
                 $task_name = $job['task_name'] ?? 'Other';
                 
+                // Debug logging
+                error_log("EMAIL DEBUG - Job ID: $job_id, Task ID: $task_id, Task Name: '$task_name'");
+                
                 // Map specific task IDs to email templates
                 // ID 1 = Year End, ID 2 = VAT Returns, others = Other default
                 $template_mapping = [
@@ -116,12 +119,24 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 $template_name = $template_mapping[$task_id] ?? 'Other default';
                 
                 // Get email template
-                $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE template_name = ?");
-                $stmt->execute([$template_name]);
-                $template = $stmt->fetch();
+                try {
+                    $stmt = $pdo->prepare("SELECT subject, body FROM email_templates WHERE template_name = ?");
+                    $stmt->execute([$template_name]);
+                    $template = $stmt->fetch();
+                } catch (PDOException $e) {
+                    error_log("EMAIL DEBUG - Database error when fetching template: " . $e->getMessage());
+                    $template = null;
+                }
+                
+                // Debug logging for live server
+                error_log("EMAIL DEBUG - Task ID: $task_id, Template name: '$template_name', Template found: " . ($template ? 'YES' : 'NO'));
+                if ($template) {
+                    error_log("EMAIL DEBUG - Using database template, subject: " . substr($template['subject'], 0, 50));
+                }
                 
                 // Use default template if not found
                 if (!$template) {
+                    error_log("EMAIL DEBUG - Template not found, using default for: '$template_name'");
                     $default_templates = [
                         'Year End' => [
                             'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
