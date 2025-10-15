@@ -76,15 +76,15 @@ try {
 $default_templates = [
     'Year End' => [
         'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
-        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
     ],
     'VAT returns' => [
         'subject' => 'Information needed for VAT Return for the Period Ended {period_end}',
-        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
     ],
     'Other default' => [
         'subject' => 'Information needed for {task_name} for the Period Ended {period_end}',
-        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+        'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
     ]
 ];
 
@@ -169,13 +169,13 @@ $template_body = $current_template['body'] ?? $default_templates[$selected_task]
                             <label for="subject">Email Subject:</label>
                             <input type="text" id="subject" name="subject" class="form-control" 
                                    value="<?php echo htmlspecialchars($template_subject); ?>" required>
-                            <small class="form-text">Use {period_end}, {contact_forename}, {task_name}, {user_signature}, {username} as placeholders</small>
+                            <small class="form-text">Use {period_end}, {contact_forename}, {task_name}, {user_signature}, {username}, {deadline_date} as placeholders</small>
                         </div>
                         
                         <div class="form-group">
                             <label for="body">Email Body:</label>
                             <textarea id="body" name="body" class="form-control" rows="8" required><?php echo htmlspecialchars($template_body); ?></textarea>
-                            <small class="form-text">Use {period_end}, {contact_forename}, {task_name}, {user_signature}, {username} as placeholders</small>
+                            <small class="form-text">Use {period_end}, {contact_forename}, {task_name}, {user_signature}, {username}, {deadline_date} as placeholders</small>
                         </div>
                         
                         <div class="form-actions">

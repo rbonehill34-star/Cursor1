@@ -82,13 +82,12 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
         try {
             // Get job and client details for email
             $stmt = $pdo->prepare("
-                SELECT j.*, j.period_end, c.name as client_name, c.email as client_email, c.contact_forename, 
+                SELECT j.*, j.period_end, j.deadline_date, c.name as client_name, c.email as client_email, c.contact_forename, 
                        CONCAT(COALESCE(c.contact_forename, ''), ' ', COALESCE(c.contact_surname, '')) as client_contact,
-                       t.task_name, u.user_signature, u.username
+                       t.task_name
                 FROM jobs j
                 LEFT JOIN clients c ON j.client_id = c.id
                 LEFT JOIN tasks t ON j.task_id = t.id
-                LEFT JOIN users u ON j.preparer_id = u.id
                 WHERE j.id = ? AND j.state_id = (SELECT id FROM state WHERE state_name = 'Outstanding')
             ");
             $stmt->execute([$job_id]);
@@ -98,6 +97,11 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
             error_log("DEBUG - Processing job ID: $job_id, Found job: " . print_r($job, true));
             
             if ($job && !empty($job['client_email'])) {
+                // Get logged-in user's information
+                $stmt = $pdo->prepare("SELECT user_signature, username FROM users WHERE id = ?");
+                $stmt->execute([$_SESSION['user_id']]);
+                $current_user = $stmt->fetch();
+                
                 // Get email template based on task name
                 $task_name = $job['task_name'] ?? 'Other default';
                 
@@ -121,15 +125,15 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                     $default_templates = [
                         'Year End' => [
                             'subject' => 'Information needed for Accounts for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the accounts as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
                         ],
                         'VAT returns' => [
                             'subject' => 'Information needed for VAT Return for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the VAT return as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
                         ],
                         'Other default' => [
                             'subject' => 'Information needed for {task_name} for the Period Ended {period_end}',
-                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nKind regards\n{user_signature}\n{username}"
+                            'body' => "Hi {contact_forename}\n\nPlease can you send the data for the {task_name} as soon as possible.\n\nThe deadline for submission is {deadline_date}.\n\nKind regards\n{user_signature}\n{username}"
                         ]
                     ];
                     $template = $default_templates[$template_name] ?? $default_templates['Other default'];
@@ -137,20 +141,21 @@ if (isset($_POST['send_reminders']) && isset($_POST['selected_jobs'])) {
                 
                 // Prepare email content with placeholders
                 $period_end_date = $job['period_end'] ? date('d/m/Y', strtotime($job['period_end'])) : 'TBD';
+                $deadline_date = $job['deadline_date'] ? date('d/m/Y', strtotime($job['deadline_date'])) : 'TBD';
                 $contact_forename = $job['contact_forename'] ?: 'there';
-                $user_signature = $job['user_signature'] ?: 'Rob';
-                $username = $job['username'] ?: 'admin';
+                $user_signature = $current_user['user_signature'] ?: 'Rob';
+                $username = $current_user['username'] ?: 'admin';
                 
                 // Replace placeholders in subject and body
                 $subject = str_replace(
-                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}'],
-                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username],
+                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}', '{deadline_date}'],
+                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username, $deadline_date],
                     $template['subject']
                 );
                 
                 $body = str_replace(
-                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}'],
-                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username],
+                    ['{period_end}', '{contact_forename}', '{task_name}', '{user_signature}', '{username}', '{deadline_date}'],
+                    [$period_end_date, $contact_forename, $task_name, $user_signature, $username, $deadline_date],
                     $template['body']
                 );
                 
