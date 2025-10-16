@@ -219,14 +219,16 @@ function getJobsByTab($pdo, $tab) {
     // Add state filter based on tab
     switch ($tab) {
         case 'all':
-            // Exclude completed and archived jobs
-            $base_query .= " AND s.state_name != 'Completed'";
+            // Show all jobs except archived
             break;
         case 'received':
             $base_query .= " AND s.state_name = 'Received'";
             break;
         case 'outstanding':
             $base_query .= " AND s.state_name = 'Outstanding'";
+            break;
+        case 'completed':
+            $base_query .= " AND s.state_name = 'Completed'";
             break;
         default:
             return [];
@@ -246,11 +248,37 @@ function getJobsByTab($pdo, $tab) {
 // Get jobs for the active tab
 $jobs = getJobsByTab($pdo, $active_tab);
 
-// Define available tabs
+// Get job counts for each tab
+function getJobCounts($pdo) {
+    $counts = [];
+    
+    // All jobs (excluding archived)
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM jobs j LEFT JOIN state s ON j.state_id = s.id WHERE s.state_name != 'Archived'");
+    $counts['all'] = $stmt->fetch()['count'];
+    
+    // Outstanding jobs
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM jobs j LEFT JOIN state s ON j.state_id = s.id WHERE s.state_name = 'Outstanding'");
+    $counts['outstanding'] = $stmt->fetch()['count'];
+    
+    // Received jobs
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM jobs j LEFT JOIN state s ON j.state_id = s.id WHERE s.state_name = 'Received'");
+    $counts['received'] = $stmt->fetch()['count'];
+    
+    // Completed jobs
+    $stmt = $pdo->query("SELECT COUNT(*) as count FROM jobs j LEFT JOIN state s ON j.state_id = s.id WHERE s.state_name = 'Completed'");
+    $counts['completed'] = $stmt->fetch()['count'];
+    
+    return $counts;
+}
+
+$job_counts = getJobCounts($pdo);
+
+// Define available tabs with counts
 $available_tabs = [
     'all' => 'All Jobs',
-    'received' => 'Received',
-    'outstanding' => 'Outstanding'
+    'outstanding' => 'Outstanding – Awaiting Client Data',
+    'received' => 'Received but not allocated',
+    'completed' => 'Completed'
 ];
 ?>
 <!DOCTYPE html>
@@ -318,6 +346,7 @@ $available_tabs = [
                             <a href="?tab=<?php echo $tab_key; ?>" 
                                class="tab <?php echo $active_tab === $tab_key ? 'active' : ''; ?>">
                                 <?php echo htmlspecialchars($tab_label); ?>
+                                <span class="tab-count"><?php echo $job_counts[$tab_key]; ?></span>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -405,7 +434,11 @@ $available_tabs = [
                                     <?php endif; ?>
                                     <th>Client</th>
                                     <th>Task</th>
-                                    <th>Completion</th>
+                                    <?php if ($active_tab === 'completed'): ?>
+                                        <th>Completed Date</th>
+                                    <?php else: ?>
+                                        <th>Completion</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody id="jobsTableBody">
@@ -430,22 +463,32 @@ $available_tabs = [
                                         </td>
                                         <td><?php echo htmlspecialchars($job['task_name']); ?></td>
                                         <td>
-                                            <?php if ($job['expected_completion_date']): ?>
-                                                <?php 
-                                                $completion_date = strtotime($job['expected_completion_date']);
-                                                $today = time();
-                                                $days_left = ceil(($completion_date - $today) / (60 * 60 * 24));
-                                                
-                                                if ($days_left < 0) {
-                                                    echo '<span class="overdue">' . date('d/m/y', $completion_date) . '</span>';
-                                                } elseif ($days_left <= 3) {
-                                                    echo '<span class="due-soon">' . date('d/m/y', $completion_date) . '</span>';
-                                                } else {
-                                                    echo date('d/m/y', $completion_date);
-                                                }
-                                                ?>
+                                            <?php if ($active_tab === 'completed'): ?>
+                                                <?php if ($job['completed_date']): ?>
+                                                    <?php echo date('d/m/y', strtotime($job['completed_date'])); ?>
+                                                <?php elseif ($job['updated_at']): ?>
+                                                    <?php echo date('d/m/y', strtotime($job['updated_at'])); ?>
+                                                <?php else: ?>
+                                                    <span class="no-data">-</span>
+                                                <?php endif; ?>
                                             <?php else: ?>
-                                                <span class="no-data">-</span>
+                                                <?php if ($job['expected_completion_date']): ?>
+                                                    <?php 
+                                                    $completion_date = strtotime($job['expected_completion_date']);
+                                                    $today = time();
+                                                    $days_left = ceil(($completion_date - $today) / (60 * 60 * 24));
+                                                    
+                                                    if ($days_left < 0) {
+                                                        echo '<span class="overdue">' . date('d/m/y', $completion_date) . '</span>';
+                                                    } elseif ($days_left <= 3) {
+                                                        echo '<span class="due-soon">' . date('d/m/y', $completion_date) . '</span>';
+                                                    } else {
+                                                        echo date('d/m/y', $completion_date);
+                                                    }
+                                                    ?>
+                                                <?php else: ?>
+                                                    <span class="no-data">-</span>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -635,10 +678,12 @@ $available_tabs = [
             display: flex;
             gap: 0;
             margin-bottom: -1px;
+            width: 100%;
         }
         
         .tab {
-            padding: 12px 20px;
+            flex: 1;
+            padding: 12px 16px;
             text-decoration: none;
             color: #6c757d;
             border: 1px solid transparent;
@@ -648,6 +693,12 @@ $available_tabs = [
             font-weight: 500;
             border-radius: 4px 4px 0 0;
             margin-right: 2px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .tab:hover {
@@ -662,6 +713,34 @@ $available_tabs = [
             border-color: #e9ecef;
             border-bottom-color: white;
             font-weight: 600;
+        }
+        
+        .tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #90EE90;
+            color: #000;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+            line-height: 1;
+            min-width: 24px;
+        }
+        
+        .tab.active .tab-count {
+            background: #90EE90;
+            color: #000;
+        }
+        
+        /* Large screens - ensure proper spacing */
+        @media (min-width: 1200px) {
+            .tab {
+                padding: 12px 20px;
+            }
         }
         
         .job-row {
@@ -749,13 +828,26 @@ $available_tabs = [
         
         @media (max-width: 768px) {
             .tabs {
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
             
             .tab {
                 flex: 1;
+                min-width: 0;
                 text-align: center;
-                min-width: 80px;
+                padding: 10px 8px;
+                font-size: 0.75rem;
+                margin-right: 1px;
+            }
+            
+            .tab-count {
+                width: 18px;
+                height: 18px;
+                font-size: 0.65rem;
+                margin-left: 4px;
+                min-width: 18px;
             }
             
             /* Mobile column optimizations */
@@ -782,6 +874,22 @@ $available_tabs = [
         }
         
         @media (max-width: 480px) {
+            .tab {
+                flex: 1;
+                min-width: 0;
+                padding: 8px 4px;
+                font-size: 0.7rem;
+                margin-right: 1px;
+            }
+            
+            .tab-count {
+                width: 16px;
+                height: 16px;
+                font-size: 0.6rem;
+                margin-left: 3px;
+                min-width: 16px;
+            }
+            
             /* Extra small mobile optimizations */
             .data-table th:nth-child(2),
             .data-table td:nth-child(2) {
