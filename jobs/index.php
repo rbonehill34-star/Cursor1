@@ -275,10 +275,22 @@ $job_counts = getJobCounts($pdo);
 
 // Define available tabs with counts
 $available_tabs = [
-    'all' => 'All Jobs',
-    'outstanding' => 'Outstanding – Awaiting Client Data',
-    'received' => 'Received but not allocated',
-    'completed' => 'Completed'
+    'all' => [
+        'desktop' => 'All Jobs',
+        'mobile' => 'All'
+    ],
+    'outstanding' => [
+        'desktop' => 'Outstanding – Awaiting Client Data',
+        'mobile' => 'Outstanding'
+    ],
+    'received' => [
+        'desktop' => 'Received but not allocated',
+        'mobile' => 'Received'
+    ],
+    'completed' => [
+        'desktop' => 'Completed',
+        'mobile' => 'Completed'
+    ]
 ];
 ?>
 <!DOCTYPE html>
@@ -342,10 +354,11 @@ $available_tabs = [
                 <!-- Tab Navigation -->
                 <div class="tabs-container">
                     <div class="tabs">
-                        <?php foreach ($available_tabs as $tab_key => $tab_label): ?>
+                        <?php foreach ($available_tabs as $tab_key => $tab_labels): ?>
                             <a href="?tab=<?php echo $tab_key; ?>" 
                                class="tab <?php echo $active_tab === $tab_key ? 'active' : ''; ?>">
-                                <?php echo htmlspecialchars($tab_label); ?>
+                                <span class="tab-label-desktop"><?php echo htmlspecialchars($tab_labels['desktop']); ?></span>
+                                <span class="tab-label-mobile"><?php echo htmlspecialchars($tab_labels['mobile']); ?></span>
                                 <span class="tab-count"><?php echo $job_counts[$tab_key]; ?></span>
                             </a>
                         <?php endforeach; ?>
@@ -736,6 +749,15 @@ $available_tabs = [
             color: #000;
         }
         
+        /* Tab label visibility */
+        .tab-label-desktop {
+            display: inline;
+        }
+        
+        .tab-label-mobile {
+            display: none;
+        }
+        
         /* Large screens - ensure proper spacing */
         @media (min-width: 1200px) {
             .tab {
@@ -848,6 +870,15 @@ $available_tabs = [
                 font-size: 0.65rem;
                 margin-left: 4px;
                 min-width: 18px;
+            }
+            
+            /* Show mobile labels, hide desktop labels */
+            .tab-label-desktop {
+                display: none;
+            }
+            
+            .tab-label-mobile {
+                display: inline;
             }
             
             /* Mobile column optimizations */
