@@ -371,7 +371,7 @@ $available_tabs = [
                             <i class="fas fa-briefcase"></i>
                         </div>
                         <h3>No jobs in this category</h3>
-                        <p>You don't have any jobs in the "<?php echo htmlspecialchars($available_tabs[$active_tab]); ?>" category.</p>
+                        <p>You don't have any jobs in the "<?php echo htmlspecialchars($available_tabs[$active_tab]['desktop']); ?>" category.</p>
                         <a href="add" class="btn btn-primary">
                             <i class="fas fa-plus"></i>
                             Create First Job
