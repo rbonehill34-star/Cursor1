@@ -225,7 +225,7 @@ try {
     $states = $stmt->fetchAll();
     
     // Get users for partner, manager, preparer
-    $stmt = $pdo->query("SELECT id, username FROM users ORDER BY username ASC");
+    $stmt = $pdo->query("SELECT id, username, user_internal FROM users ORDER BY user_internal ASC, username ASC");
     $users = $stmt->fetchAll();
     
 } catch (PDOException $e) {
@@ -414,7 +414,7 @@ try {
                                     <?php foreach ($users as $user): ?>
                                         <option value="<?php echo $user['id']; ?>" 
                                                 <?php echo $formData['partner_id'] == $user['id'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($user['username']); ?>
+                                            <?php echo htmlspecialchars(!empty($user['user_internal']) ? $user['user_internal'] : $user['username']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -430,7 +430,7 @@ try {
                                     <?php foreach ($users as $user): ?>
                                         <option value="<?php echo $user['id']; ?>" 
                                                 <?php echo $formData['manager_id'] == $user['id'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($user['username']); ?>
+                                            <?php echo htmlspecialchars(!empty($user['user_internal']) ? $user['user_internal'] : $user['username']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -446,7 +446,7 @@ try {
                                     <?php foreach ($users as $user): ?>
                                         <option value="<?php echo $user['id']; ?>" 
                                                 <?php echo $formData['preparer_id'] == $user['id'] ? 'selected' : ''; ?>>
-                                            <?php echo htmlspecialchars($user['username']); ?>
+                                            <?php echo htmlspecialchars(!empty($user['user_internal']) ? $user['user_internal'] : $user['username']); ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

@@ -119,6 +119,19 @@ if (isset($_GET['logout'])) {
                             Import Data
                         </a>
                     </div>
+
+                    <!-- Job Process - Available to all users -->
+                    <div class="settings-portal-card">
+                        <div class="settings-portal-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h3>Job Process</h3>
+                        <p>Manage job stages and access levels</p>
+                        <a href="../jobprocess" class="btn btn-primary">
+                            <i class="fas fa-arrow-right"></i>
+                            Job Process
+                        </a>
+                    </div>
                 </div>
 
             </div>

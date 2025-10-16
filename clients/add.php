@@ -266,11 +266,12 @@ if ($_POST) {
                                     <option value="">Select Partner</option>
                                     <?php
                                     try {
-                                        $stmt = $pdo->query("SELECT id, username FROM users ORDER BY username ASC");
+                                        $stmt = $pdo->query("SELECT id, username, user_internal FROM users ORDER BY user_internal ASC, username ASC");
                                         $users = $stmt->fetchAll();
                                         foreach ($users as $user) {
                                             $selected = ($partner_id == $user['id']) ? 'selected' : '';
-                                            echo "<option value=\"{$user['id']}\" $selected>" . htmlspecialchars($user['username']) . "</option>";
+                                            $display_name = !empty($user['user_internal']) ? $user['user_internal'] : $user['username'];
+                                            echo "<option value=\"{$user['id']}\" $selected>" . htmlspecialchars($display_name) . "</option>";
                                         }
                                     } catch (PDOException $e) {
                                         // Handle error silently
