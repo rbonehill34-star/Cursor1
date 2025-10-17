@@ -31,7 +31,7 @@ if ($environment === 'local') {
     $host = 'localhost';
     $dbname = 'a1e750tdxgba_cursor1';
     $username = 'a1e750tdxgba_15Crossways';
-    $password = 'Crossways15!';
+    $password = 'Crossways25!';
 }
 
 try {
